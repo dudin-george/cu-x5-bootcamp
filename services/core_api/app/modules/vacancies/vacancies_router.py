@@ -151,39 +151,39 @@ async def get_vacancy_with_candidates(
     )
 
 
-@router.patch(
-    "/{vacancy_id}",
-    response_model=VacancyResponse,
-    summary="Update vacancy",
-    description="Update vacancy fields.",
-)
-async def update_vacancy(
-    vacancy_id: int,
-    update_data: VacancyUpdate,
-    db: AsyncSession = Depends(get_db),
-) -> VacancyResponse:
-    """Update vacancy.
-
-    Args:
-        vacancy_id: Vacancy ID.
-        update_data: Fields to update.
-        db: Database session.
-
-    Returns:
-        VacancyResponse: Updated vacancy.
-
-    Raises:
-        HTTPException: If vacancy not found.
-    """
-    vacancy = await VacancyService.get_vacancy_by_id(db, vacancy_id)
-    if not vacancy:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Vacancy with id {vacancy_id} not found",
-        )
-
-    updated_vacancy = await VacancyService.update_vacancy(db, vacancy, update_data)
-    return VacancyResponse.model_validate(updated_vacancy)
+# @router.patch(
+#     "/{vacancy_id}",
+#     response_model=VacancyResponse,
+#     summary="Update vacancy",
+#     description="Update vacancy fields.",
+# )
+# async def update_vacancy(
+#     vacancy_id: int,
+#     update_data: VacancyUpdate,
+#     db: AsyncSession = Depends(get_db),
+# ) -> VacancyResponse:
+#     """Update vacancy.
+#
+#     Args:
+#         vacancy_id: Vacancy ID.
+#         update_data: Fields to update.
+#         db: Database session.
+#
+#     Returns:
+#         VacancyResponse: Updated vacancy.
+#
+#     Raises:
+#         HTTPException: If vacancy not found.
+#     """
+#     vacancy = await VacancyService.get_vacancy_by_id(db, vacancy_id)
+#     if not vacancy:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Vacancy with id {vacancy_id} not found",
+#         )
+#
+#     updated_vacancy = await VacancyService.update_vacancy(db, vacancy, update_data)
+#     return VacancyResponse.model_validate(updated_vacancy)
 
 
 @router.post(
@@ -252,33 +252,33 @@ async def abort_vacancy(
     return VacancyResponse.model_validate(aborted_vacancy)
 
 
-@router.delete(
-    "/{vacancy_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete vacancy",
-    description="Delete vacancy. All associated candidate pool entries will be deleted (CASCADE).",
-)
-async def delete_vacancy(
-    vacancy_id: int,
-    db: AsyncSession = Depends(get_db),
-) -> None:
-    """Delete vacancy.
-
-    Args:
-        vacancy_id: Vacancy ID.
-        db: Database session.
-
-    Raises:
-        HTTPException: If vacancy not found.
-    """
-    vacancy = await VacancyService.get_vacancy_by_id(db, vacancy_id)
-    if not vacancy:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Vacancy with id {vacancy_id} not found",
-        )
-
-    await VacancyService.delete_vacancy(db, vacancy)
+# @router.delete(
+#     "/{vacancy_id}",
+#     status_code=status.HTTP_204_NO_CONTENT,
+#     summary="Delete vacancy",
+#     description="Delete vacancy. All associated candidate pool entries will be deleted (CASCADE).",
+# )
+# async def delete_vacancy(
+#     vacancy_id: int,
+#     db: AsyncSession = Depends(get_db),
+# ) -> None:
+#     """Delete vacancy.
+#
+#     Args:
+#         vacancy_id: Vacancy ID.
+#         db: Database session.
+#
+#     Raises:
+#         HTTPException: If vacancy not found.
+#     """
+#     vacancy = await VacancyService.get_vacancy_by_id(db, vacancy_id)
+#     if not vacancy:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Vacancy with id {vacancy_id} not found",
+#         )
+#
+#     await VacancyService.delete_vacancy(db, vacancy)
 
 
 @router.get(

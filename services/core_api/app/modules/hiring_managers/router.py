@@ -88,37 +88,37 @@ async def get_hiring_manager(
     return HiringManagerResponse.model_validate(hiring_manager)
 
 
-@router.get(
-    "/telegram/{telegram_id}",
-    response_model=HiringManagerResponse,
-    summary="Get hiring manager by Telegram ID",
-    description="Get hiring manager profile by Telegram user ID.",
-)
-async def get_hiring_manager_by_telegram(
-    telegram_id: int,
-    db: AsyncSession = Depends(get_db),
-) -> HiringManagerResponse:
-    """Get hiring manager by Telegram ID.
-
-    Args:
-        telegram_id: Telegram user ID.
-        db: Database session.
-
-    Returns:
-        HiringManagerResponse: Hiring manager profile.
-
-    Raises:
-        HTTPException: If hiring manager not found.
-    """
-    hiring_manager = await HiringManagerService.get_hiring_manager_by_telegram_id(
-        db, telegram_id
-    )
-    if not hiring_manager:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Hiring manager with telegram_id {telegram_id} not found",
-        )
-    return HiringManagerResponse.model_validate(hiring_manager)
+# @router.get(
+#     "/telegram/{telegram_id}",
+#     response_model=HiringManagerResponse,
+#     summary="Get hiring manager by Telegram ID",
+#     description="Get hiring manager profile by Telegram user ID.",
+# )
+# async def get_hiring_manager_by_telegram(
+#     telegram_id: int,
+#     db: AsyncSession = Depends(get_db),
+# ) -> HiringManagerResponse:
+#     """Get hiring manager by Telegram ID.
+#
+#     Args:
+#         telegram_id: Telegram user ID.
+#         db: Database session.
+#
+#     Returns:
+#         HiringManagerResponse: Hiring manager profile.
+#
+#     Raises:
+#         HTTPException: If hiring manager not found.
+#     """
+#     hiring_manager = await HiringManagerService.get_hiring_manager_by_telegram_id(
+#         db, telegram_id
+#     )
+#     if not hiring_manager:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Hiring manager with telegram_id {telegram_id} not found",
+#         )
+#     return HiringManagerResponse.model_validate(hiring_manager)
 
 
 @router.get(
@@ -150,43 +150,43 @@ async def get_all_hiring_managers(
     ]
 
 
-@router.patch(
-    "/{hiring_manager_id}",
-    response_model=HiringManagerResponse,
-    summary="Update hiring manager",
-    description="Update hiring manager profile fields.",
-)
-async def update_hiring_manager(
-    hiring_manager_id: uuid.UUID,
-    update_data: HiringManagerUpdate,
-    db: AsyncSession = Depends(get_db),
-) -> HiringManagerResponse:
-    """Update hiring manager.
-
-    Args:
-        hiring_manager_id: Hiring manager UUID.
-        update_data: Fields to update.
-        db: Database session.
-
-    Returns:
-        HiringManagerResponse: Updated hiring manager.
-
-    Raises:
-        HTTPException: If hiring manager not found.
-    """
-    hiring_manager = await HiringManagerService.get_hiring_manager_by_id(
-        db, hiring_manager_id
-    )
-    if not hiring_manager:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Hiring manager with id {hiring_manager_id} not found",
-        )
-
-    updated_manager = await HiringManagerService.update_hiring_manager(
-        db, hiring_manager, update_data
-    )
-    return HiringManagerResponse.model_validate(updated_manager)
+# @router.patch(
+#     "/{hiring_manager_id}",
+#     response_model=HiringManagerResponse,
+#     summary="Update hiring manager",
+#     description="Update hiring manager profile fields.",
+# )
+# async def update_hiring_manager(
+#     hiring_manager_id: uuid.UUID,
+#     update_data: HiringManagerUpdate,
+#     db: AsyncSession = Depends(get_db),
+# ) -> HiringManagerResponse:
+#     """Update hiring manager.
+#
+#     Args:
+#         hiring_manager_id: Hiring manager UUID.
+#         update_data: Fields to update.
+#         db: Database session.
+#
+#     Returns:
+#         HiringManagerResponse: Updated hiring manager.
+#
+#     Raises:
+#         HTTPException: If hiring manager not found.
+#     """
+#     hiring_manager = await HiringManagerService.get_hiring_manager_by_id(
+#         db, hiring_manager_id
+#     )
+#     if not hiring_manager:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Hiring manager with id {hiring_manager_id} not found",
+#         )
+#
+#     updated_manager = await HiringManagerService.update_hiring_manager(
+#         db, hiring_manager, update_data
+#     )
+#     return HiringManagerResponse.model_validate(updated_manager)
 
 
 @router.delete(

@@ -84,35 +84,35 @@ async def get_candidate(
     return CandidateResponse.model_validate(candidate)
 
 
-@router.get(
-    "/telegram/{telegram_id}",
-    response_model=CandidateResponse,
-    summary="Get candidate by Telegram ID",
-    description="Get candidate profile by Telegram user ID.",
-)
-async def get_candidate_by_telegram(
-    telegram_id: int,
-    db: AsyncSession = Depends(get_db),
-) -> CandidateResponse:
-    """Get candidate by Telegram ID.
-
-    Args:
-        telegram_id: Telegram user ID.
-        db: Database session.
-
-    Returns:
-        CandidateResponse: Candidate profile.
-
-    Raises:
-        HTTPException: If candidate not found.
-    """
-    candidate = await CandidateService.get_candidate_by_telegram_id(db, telegram_id)
-    if not candidate:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Candidate with telegram_id {telegram_id} not found",
-        )
-    return CandidateResponse.model_validate(candidate)
+# @router.get(
+#     "/telegram/{telegram_id}",
+#     response_model=CandidateResponse,
+#     summary="Get candidate by Telegram ID",
+#     description="Get candidate profile by Telegram user ID.",
+# )
+# async def get_candidate_by_telegram(
+#     telegram_id: int,
+#     db: AsyncSession = Depends(get_db),
+# ) -> CandidateResponse:
+#     """Get candidate by Telegram ID.
+#
+#     Args:
+#         telegram_id: Telegram user ID.
+#         db: Database session.
+#
+#     Returns:
+#         CandidateResponse: Candidate profile.
+#
+#     Raises:
+#         HTTPException: If candidate not found.
+#     """
+#     candidate = await CandidateService.get_candidate_by_telegram_id(db, telegram_id)
+#     if not candidate:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Candidate with telegram_id {telegram_id} not found",
+#         )
+#     return CandidateResponse.model_validate(candidate)
 
 
 @router.get(
@@ -140,41 +140,41 @@ async def get_all_candidates(
     return [CandidateResponse.model_validate(c) for c in candidates]
 
 
-@router.patch(
-    "/{candidate_id}",
-    response_model=CandidateResponse,
-    summary="Update candidate",
-    description="Update candidate profile fields.",
-)
-async def update_candidate(
-    candidate_id: uuid.UUID,
-    update_data: CandidateUpdate,
-    db: AsyncSession = Depends(get_db),
-) -> CandidateResponse:
-    """Update candidate.
-
-    Args:
-        candidate_id: Candidate UUID.
-        update_data: Fields to update.
-        db: Database session.
-
-    Returns:
-        CandidateResponse: Updated candidate.
-
-    Raises:
-        HTTPException: If candidate not found.
-    """
-    candidate = await CandidateService.get_candidate_by_id(db, candidate_id)
-    if not candidate:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Candidate with id {candidate_id} not found",
-        )
-
-    updated_candidate = await CandidateService.update_candidate(
-        db, candidate, update_data
-    )
-    return CandidateResponse.model_validate(updated_candidate)
+# @router.patch(
+#     "/{candidate_id}",
+#     response_model=CandidateResponse,
+#     summary="Update candidate",
+#     description="Update candidate profile fields.",
+# )
+# async def update_candidate(
+#     candidate_id: uuid.UUID,
+#     update_data: CandidateUpdate,
+#     db: AsyncSession = Depends(get_db),
+# ) -> CandidateResponse:
+#     """Update candidate.
+#
+#     Args:
+#         candidate_id: Candidate UUID.
+#         update_data: Fields to update.
+#         db: Database session.
+#
+#     Returns:
+#         CandidateResponse: Updated candidate.
+#
+#     Raises:
+#         HTTPException: If candidate not found.
+#     """
+#     candidate = await CandidateService.get_candidate_by_id(db, candidate_id)
+#     if not candidate:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Candidate with id {candidate_id} not found",
+#         )
+#
+#     updated_candidate = await CandidateService.update_candidate(
+#         db, candidate, update_data
+#     )
+#     return CandidateResponse.model_validate(updated_candidate)
 
 
 @router.delete(

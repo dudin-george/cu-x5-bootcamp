@@ -112,107 +112,107 @@ async def get_candidates_in_pool(
     ]
 
 
-@router.get(
-    "/{pool_id}",
-    response_model=CandidatePoolResponse,
-    summary="Get pool entry by ID",
-    description="Get specific candidate pool entry by its ID.",
-)
-async def get_pool_entry_by_id(
-    pool_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-) -> CandidatePoolResponse:
-    """Get pool entry by ID.
-
-    Args:
-        pool_id: Pool entry UUID.
-        db: Database session.
-
-    Returns:
-        CandidatePoolResponse: Pool entry.
-
-    Raises:
-        HTTPException: If pool entry not found.
-    """
-    pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
-    if not pool_entry:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Pool entry with id {pool_id} not found",
-        )
-    return CandidatePoolResponse.model_validate(pool_entry)
-
-
-@router.patch(
-    "/{pool_id}",
-    response_model=CandidatePoolResponse,
-    summary="Update pool entry",
-    description=(
-        "Update candidate pool entry (status, interview details, notes).\n\n"
-        "**Возможные статусы кандидата:**\n"
-        "- `VIEWED` - кандидат просмотрен\n"
-        "- `SELECTED` - кандидат выбран для интервью\n"
-        "- `INTERVIEW_SCHEDULED` - интервью назначено\n"
-        "- `INTERVIEWED` - интервью проведено\n"
-        "- `FINALIST` - финалист\n"
-        "- `OFFER_SENT` - оффер отправлен\n"
-        "- `REJECTED` - отклонен\n\n"
-        "Все поля опциональны. Обновляются только переданные поля."
-    ),
-)
-async def update_pool_entry(
-    pool_id: uuid.UUID,
-    update_data: CandidatePoolUpdate,
-    db: AsyncSession = Depends(get_db),
-) -> CandidatePoolResponse:
-    """Update candidate pool entry.
-
-    Args:
-        pool_id: Pool entry UUID.
-        update_data: Fields to update.
-        db: Database session.
-
-    Returns:
-        CandidatePoolResponse: Updated pool entry.
-
-    Raises:
-        HTTPException: If pool entry not found.
-    """
-    pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
-    if not pool_entry:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Pool entry with id {pool_id} not found",
-        )
-
-    updated_entry = await CandidatePoolService.update(db, pool_entry, update_data)
-    return CandidatePoolResponse.model_validate(updated_entry)
+# @router.get(
+#     "/{pool_id}",
+#     response_model=CandidatePoolResponse,
+#     summary="Get pool entry by ID",
+#     description="Get specific candidate pool entry by its ID.",
+# )
+# async def get_pool_entry_by_id(
+#     pool_id: uuid.UUID,
+#     db: AsyncSession = Depends(get_db),
+# ) -> CandidatePoolResponse:
+#     """Get pool entry by ID.
+#
+#     Args:
+#         pool_id: Pool entry UUID.
+#         db: Database session.
+#
+#     Returns:
+#         CandidatePoolResponse: Pool entry.
+#
+#     Raises:
+#         HTTPException: If pool entry not found.
+#     """
+#     pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
+#     if not pool_entry:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Pool entry with id {pool_id} not found",
+#         )
+#     return CandidatePoolResponse.model_validate(pool_entry)
 
 
-@router.delete(
-    "/{pool_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Remove candidate from pool",
-    description="Remove candidate from vacancy pool.",
-)
-async def remove_from_pool(
-    pool_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-) -> None:
-    """Remove candidate from vacancy pool.
+# @router.patch(
+#     "/{pool_id}",
+#     response_model=CandidatePoolResponse,
+#     summary="Update pool entry",
+#     description=(
+#         "Update candidate pool entry (status, interview details, notes).\n\n"
+#         "**Возможные статусы кандидата:**\n"
+#         "- `VIEWED` - кандидат просмотрен\n"
+#         "- `SELECTED` - кандидат выбран для интервью\n"
+#         "- `INTERVIEW_SCHEDULED` - интервью назначено\n"
+#         "- `INTERVIEWED` - интервью проведено\n"
+#         "- `FINALIST` - финалист\n"
+#         "- `OFFER_SENT` - оффер отправлен\n"
+#         "- `REJECTED` - отклонен\n\n"
+#         "Все поля опциональны. Обновляются только переданные поля."
+#     ),
+# )
+# async def update_pool_entry(
+#     pool_id: uuid.UUID,
+#     update_data: CandidatePoolUpdate,
+#     db: AsyncSession = Depends(get_db),
+# ) -> CandidatePoolResponse:
+#     """Update candidate pool entry.
+#
+#     Args:
+#         pool_id: Pool entry UUID.
+#         update_data: Fields to update.
+#         db: Database session.
+#
+#     Returns:
+#         CandidatePoolResponse: Updated pool entry.
+#
+#     Raises:
+#         HTTPException: If pool entry not found.
+#     """
+#     pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
+#     if not pool_entry:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Pool entry with id {pool_id} not found",
+#         )
+#
+#     updated_entry = await CandidatePoolService.update(db, pool_entry, update_data)
+#     return CandidatePoolResponse.model_validate(updated_entry)
 
-    Args:
-        pool_id: Pool entry UUID.
-        db: Database session.
 
-    Raises:
-        HTTPException: If pool entry not found.
-    """
-    pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
-    if not pool_entry:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Pool entry with id {pool_id} not found",
-        )
-
-    await CandidatePoolService.remove(db, pool_entry)
+# @router.delete(
+#     "/{pool_id}",
+#     status_code=status.HTTP_204_NO_CONTENT,
+#     summary="Remove candidate from pool",
+#     description="Remove candidate from vacancy pool.",
+# )
+# async def remove_from_pool(
+#     pool_id: uuid.UUID,
+#     db: AsyncSession = Depends(get_db),
+# ) -> None:
+#     """Remove candidate from vacancy pool.
+#
+#     Args:
+#         pool_id: Pool entry UUID.
+#         db: Database session.
+#
+#     Raises:
+#         HTTPException: If pool entry not found.
+#     """
+#     pool_entry = await CandidatePoolService.get_by_id(db, pool_id)
+#     if not pool_entry:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Pool entry with id {pool_id} not found",
+#         )
+#
+#     await CandidatePoolService.remove(db, pool_entry)
