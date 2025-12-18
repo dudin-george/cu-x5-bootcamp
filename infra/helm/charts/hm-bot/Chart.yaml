@@ -1,0 +1,7 @@
+apiVersion: v2
+name: hm-bot
+description: Telegram bot for Hiring Managers
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

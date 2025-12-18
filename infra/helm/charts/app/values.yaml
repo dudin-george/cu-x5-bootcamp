@@ -1,0 +1,34 @@
+# Global values
+global:
+  image:
+    registry: ghcr.io/dudin-george/cu-x5-bootcamp
+    tag: latest
+    pullPolicy: IfNotPresent
+  environment: dev
+
+# Ingress (общий для всех сервисов)
+ingress:
+  enabled: true
+  className: nginx
+  host: dev.x5teamintern.ru
+  tls:
+    enabled: true
+    secretName: x5-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+# Subcharts defaults
+core-api:
+  replicaCount: 1
+
+candidate-bot:
+  replicaCount: 1
+
+hm-bot:
+  replicaCount: 1
+
+worker:
+  replicaCount: 1
+
+recruiter-web:
+  replicaCount: 1

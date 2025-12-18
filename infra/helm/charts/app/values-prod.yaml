@@ -1,0 +1,110 @@
+# PROD environment
+global:
+  image:
+    registry: ghcr.io/dudin-george/cu-x5-bootcamp
+    tag: latest
+    pullPolicy: IfNotPresent
+  environment: prod
+
+ingress:
+  enabled: true
+  className: nginx
+  host: x5teamintern.ru
+  tls:
+    enabled: true
+    secretName: x5-tls-prod
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+# Core API
+core-api:
+  replicaCount: 2
+  config:
+    environment: prod
+    logLevel: INFO
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+# Candidate Bot
+candidate-bot:
+  replicaCount: 2
+  config:
+    environment: prod
+    logLevel: INFO
+  secrets:
+    telegramBotToken: ""
+    webhookSecret: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+# HM Bot
+hm-bot:
+  replicaCount: 2
+  config:
+    environment: prod
+    logLevel: INFO
+  secrets:
+    telegramBotToken: ""
+    webhookSecret: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+# Worker
+worker:
+  replicaCount: 2
+  config:
+    environment: prod
+    logLevel: INFO
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+# Recruiter Web
+recruiter-web:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5

@@ -1,0 +1,53 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          # Frontend (главная страница)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: recruiter-web
+                port:
+                  number: 80
+          # Core API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: core-api
+                port:
+                  number: 8000
+          # Telegram webhooks
+          - path: /tg/candidate
+            pathType: Prefix
+            backend:
+              service:
+                name: candidate-bot
+                port:
+                  number: 8000
+          - path: /tg/hm
+            pathType: Prefix
+            backend:
+              service:
+                name: hm-bot
+                port:
+                  number: 8000
+{{- end }}

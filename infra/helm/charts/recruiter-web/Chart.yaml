@@ -1,0 +1,7 @@
+apiVersion: v2
+name: recruiter-web
+description: Recruiter web dashboard (React + Nginx)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "recruiter-web.fullname" . }}
+  labels:
+    {{- include "recruiter-web.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+  selector:
+    {{- include "recruiter-web.selectorLabels" . | nindent 4 }}
