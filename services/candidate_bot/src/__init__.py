@@ -1,0 +1,2 @@
+# Candidate Bot service
+

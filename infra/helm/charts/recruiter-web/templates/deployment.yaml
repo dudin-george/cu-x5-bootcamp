@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "recruiter-web.fullname" . }}
+  labels:
+    {{- include "recruiter-web.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.hpa.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "recruiter-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "recruiter-web.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: recruiter-web
+          image: {{ include "recruiter-web.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

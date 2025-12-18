@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-python:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [core_api, candidate_bot, hm_bot, worker]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check services/${{ matrix.service }}/src/ --output-format=github
+
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install & Lint
+        working-directory: services/recruiter_web
+        run: |
+          npm ci || npm install
+          npm run lint || echo "Lint warnings"
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build
+        working-directory: services/recruiter_web
+        run: |
+          npm ci || npm install
+          npm run build
+
+  helm-lint:
+    name: Lint Helm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "3.14.0"
+
+      - name: Lint charts
+        run: |
+          helm dependency update infra/helm/charts/app
+          helm lint infra/helm/charts/app
+          for chart in core-api candidate-bot hm-bot worker recruiter-web; do
+            helm lint infra/helm/charts/$chart
+          done

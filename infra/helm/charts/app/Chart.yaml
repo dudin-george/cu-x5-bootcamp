@@ -1,0 +1,23 @@
+apiVersion: v2
+name: x5-app
+description: X5 Hiring Bootcamp application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: core-api
+    version: "0.1.0"
+    repository: "file://../core-api"
+  - name: candidate-bot
+    version: "0.1.0"
+    repository: "file://../candidate-bot"
+  - name: hm-bot
+    version: "0.1.0"
+    repository: "file://../hm-bot"
+  - name: worker
+    version: "0.1.0"
+    repository: "file://../worker"
+  - name: recruiter-web
+    version: "0.1.0"
+    repository: "file://../recruiter-web"

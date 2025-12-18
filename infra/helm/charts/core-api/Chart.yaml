@@ -1,0 +1,7 @@
+apiVersion: v2
+name: core-api
+description: Core API service for X5 Hiring Bootcamp
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

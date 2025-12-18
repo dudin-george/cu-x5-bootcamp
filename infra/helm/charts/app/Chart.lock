@@ -1,0 +1,18 @@
+dependencies:
+- name: core-api
+  repository: file://../core-api
+  version: 0.1.0
+- name: candidate-bot
+  repository: file://../candidate-bot
+  version: 0.1.0
+- name: hm-bot
+  repository: file://../hm-bot
+  version: 0.1.0
+- name: worker
+  repository: file://../worker
+  version: 0.1.0
+- name: recruiter-web
+  repository: file://../recruiter-web
+  version: 0.1.0
+digest: sha256:8d5562fa604a9626bcfe52c5b8b7a60b142f2b574bdeb76829e20d1aea31baed
+generated: "2025-12-18T13:12:58.973394+03:00"

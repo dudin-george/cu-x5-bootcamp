@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "candidate-bot.fullname" . }}
+  labels:
+    {{- include "candidate-bot.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.hpa.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "candidate-bot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "candidate-bot.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: candidate-bot
+          image: {{ include "candidate-bot.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.config.port }}
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.config.environment | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: PORT
+              value: {{ .Values.config.port | quote }}
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "candidate-bot.fullname" . }}-secrets
+                  key: TELEGRAM_BOT_TOKEN
+            - name: WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "candidate-bot.fullname" . }}-secrets
+                  key: WEBHOOK_SECRET
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.path }}
+              port: {{ .Values.config.port }}
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.path }}
+              port: {{ .Values.config.port }}
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.venv/
+env/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets - NEVER COMMIT
+*.pem
+*.key
+secrets.yaml
+secrets.yml
+*-secrets.yaml
+kubeconfig*.yaml
+kubeconfig*.yml
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Helm
+*.tgz
+charts/*.tgz
+
+# Temporary
+tmp/
+temp/
+
