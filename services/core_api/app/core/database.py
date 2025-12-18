@@ -17,7 +17,7 @@ class Base(DeclarativeBase):
 
 engine = create_async_engine(
     settings.database_url,
-    echo=True,
+    echo=settings.environment == "dev",  # SQL logging only in dev
     future=True,
 )
 

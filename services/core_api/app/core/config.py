@@ -13,11 +13,14 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    # Environment
+    environment: str = "dev"
+
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/recruitment_db"
 
-    # Security
-    secret_key: str
+    # Security (JWT - not used currently)
+    secret_key: str = "not-used-placeholder-key"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
