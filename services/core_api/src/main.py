@@ -13,6 +13,7 @@ app = FastAPI(
     title="X5 Hiring Core API",
     description="Core API service for X5 Hiring Bootcamp",
     version="1.0.0",
+    root_path="/api",
 )
 
 
@@ -31,21 +32,9 @@ async def healthz() -> HealthResponse:
     return HealthResponse(ok=True)
 
 
-@app.get("/api/healthz", response_model=HealthResponse, tags=["health"])
-async def api_healthz() -> HealthResponse:
-    """Health check endpoint (under /api prefix)."""
-    return HealthResponse(ok=True)
-
-
 @app.get("/version", response_model=VersionResponse, tags=["info"])
 async def version() -> VersionResponse:
     """Version endpoint."""
-    return VersionResponse(version="1.0.0", environment=ENVIRONMENT)
-
-
-@app.get("/api/version", response_model=VersionResponse, tags=["info"])
-async def api_version() -> VersionResponse:
-    """Version endpoint (under /api prefix)."""
     return VersionResponse(version="1.0.0", environment=ENVIRONMENT)
 
 
