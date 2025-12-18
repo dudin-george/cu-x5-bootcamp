@@ -21,7 +21,9 @@ core-api:
   replicaCount: 1
   config:
     environment: dev
-    logLevel: DEBUG
+    frontendUrl: "https://dev.x5teamintern.ru"
+  secrets:
+    databaseUrl: ""  # --set core-api.secrets.databaseUrl
   resources:
     requests:
       cpu: 50m

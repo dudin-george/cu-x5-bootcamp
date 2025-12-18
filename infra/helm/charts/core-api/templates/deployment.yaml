@@ -16,6 +16,17 @@ spec:
       labels:
         {{- include "core-api.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+        - name: migrations
+          image: {{ include "core-api.image" . }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "core-api.fullname" . }}-secrets
+                  key: database-url
       containers:
         - name: core-api
           image: {{ include "core-api.image" . }}
@@ -25,21 +36,24 @@ spec:
           env:
             - name: ENVIRONMENT
               value: {{ .Values.config.environment | quote }}
-            - name: LOG_LEVEL
-              value: {{ .Values.config.logLevel | quote }}
-            - name: PORT
-              value: {{ .Values.config.port | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "core-api.fullname" . }}-secrets
+                  key: database-url
+            - name: FRONTEND_URL
+              value: {{ .Values.config.frontendUrl | quote }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.probes.path }}
+              path: /health
               port: {{ .Values.config.port }}
-            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.periodSeconds }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: {{ .Values.probes.path }}
+              path: /health
               port: {{ .Values.config.port }}
-            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.periodSeconds }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

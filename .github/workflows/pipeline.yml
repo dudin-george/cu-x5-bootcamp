@@ -24,7 +24,9 @@ jobs:
       - name: Lint Python
         run: |
           pip install ruff
-          for svc in core_api candidate_bot hm_bot worker; do
+          echo "Linting core_api..."
+          ruff check services/core_api/app/ || true
+          for svc in candidate_bot hm_bot worker; do
             echo "Linting $svc..."
             ruff check services/$svc/src/ || true
           done
@@ -129,6 +131,7 @@ jobs:
             --namespace dev --create-namespace \
             -f infra/helm/charts/app/values-dev.yaml \
             --set global.image.tag=${{ github.sha }} \
+            --set core-api.secrets.databaseUrl="${{ secrets.DATABASE_URL }}" \
             --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
             --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
             --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \
@@ -173,6 +176,7 @@ jobs:
             --namespace prod --create-namespace \
             -f infra/helm/charts/app/values-prod.yaml \
             --set global.image.tag=${{ github.sha }} \
+            --set core-api.secrets.databaseUrl="${{ secrets.DATABASE_URL }}" \
             --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
             --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
             --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \

@@ -2,8 +2,11 @@ replicaCount: 1
 
 config:
   environment: dev
-  logLevel: INFO
   port: 8000
+  frontendUrl: "http://localhost:5173"
+
+secrets:
+  databaseUrl: ""  # Set via --set
 
 resources:
   requests:
@@ -21,8 +24,3 @@ hpa:
 
 service:
   port: 8000
-
-probes:
-  path: /healthz
-  initialDelaySeconds: 5
-  periodSeconds: 10
