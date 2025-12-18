@@ -122,10 +122,10 @@ jobs:
             --namespace dev --create-namespace \
             -f infra/helm/charts/app/values-dev.yaml \
             --set global.image.tag=${{ github.sha }} \
-            --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
-            --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
-            --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \
-            --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM }}" \
+            --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE_DEV }}" \
+            --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE_DEV }}" \
+            --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM_DEV }}" \
+            --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM_DEV }}" \
             --wait --timeout 5m
 
       - name: Verify deployment
@@ -166,10 +166,10 @@ jobs:
             --namespace prod --create-namespace \
             -f infra/helm/charts/app/values-prod.yaml \
             --set global.image.tag=${{ github.sha }} \
-            --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
-            --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
-            --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \
-            --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM }}" \
+            --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE_PROD }}" \
+            --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE_PROD }}" \
+            --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM_PROD }}" \
+            --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM_PROD }}" \
             --wait --timeout 5m
 
       - name: Verify deployment
