@@ -97,6 +97,44 @@ jobs:
               --cache-to type=gha,mode=max \
               ${{ matrix.context }}
 
+  # ============ BUILD CANDIDATE LANDING ============
+  build-landing:
+    name: Build Landing
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: |
+            docker buildx build \
+              --push \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/candidate-landing:${{ github.sha }} \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/candidate-landing:latest \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              services/candidate_landing
+
   # ============ BUILD FRONTEND (DEV) ============
   build-frontend-dev:
     name: Build Frontend (DEV)
@@ -182,7 +220,7 @@ jobs:
   # ============ DEPLOY DEV ============
   deploy-dev:
     name: Deploy DEV
-    needs: [build, build-frontend-dev]
+    needs: [build, build-frontend-dev, build-landing]
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -248,7 +286,7 @@ jobs:
   # ============ DEPLOY PROD ============
   deploy-prod:
     name: Deploy PROD
-    needs: [build, build-frontend-prod]
+    needs: [build, build-frontend-prod, build-landing]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: prod

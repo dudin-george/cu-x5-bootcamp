@@ -32,3 +32,6 @@ worker:
 
 recruiter-web:
   replicaCount: 1
+
+candidate-landing:
+  replicaCount: 1

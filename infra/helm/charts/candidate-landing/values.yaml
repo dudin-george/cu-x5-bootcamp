@@ -1,0 +1,43 @@
+replicaCount: 1
+
+# Image override (optional, defaults to global.image.tag)
+image:
+  tag: ""
+
+# Configuration
+config:
+  telegramBotUrl: "https://t.me/X5Team_DEV_InternBot"
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 50m
+    memory: 64Mi
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+service:
+  port: 80
+
+probes:
+  path: /health
+  initialDelaySeconds: 3
+  periodSeconds: 10
+
+# Ingress (separate from main app ingress)
+ingress:
+  enabled: true
+  className: nginx
+  host: join.dev.x5teamintern.ru
+  tls:
+    enabled: true
+    secretName: join-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+

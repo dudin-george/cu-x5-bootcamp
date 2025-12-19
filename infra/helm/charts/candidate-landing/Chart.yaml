@@ -1,0 +1,7 @@
+apiVersion: v2
+name: candidate-landing
+description: Candidate landing page (static HTML + Nginx)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

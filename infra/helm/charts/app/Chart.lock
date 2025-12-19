@@ -14,5 +14,8 @@ dependencies:
 - name: recruiter-web
   repository: file://../recruiter-web
   version: 0.1.0
-digest: sha256:8d5562fa604a9626bcfe52c5b8b7a60b142f2b574bdeb76829e20d1aea31baed
-generated: "2025-12-18T13:12:58.973394+03:00"
+- name: candidate-landing
+  repository: file://../candidate-landing
+  version: 0.1.0
+digest: sha256:9aa41026ce90bdef6036c192034b2a2d2e9dfee8f9b95bb012a0277976eb508c
+generated: "2025-12-19T13:16:43.941655+03:00"
