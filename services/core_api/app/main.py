@@ -66,15 +66,29 @@ async def health() -> dict[str, str]:
 
 # Register module routers
 from app.modules.auth.router import router as auth_router
+from app.modules.candidates.quiz_router import router as quiz_router
 from app.modules.candidates.router import router as candidates_router
 from app.modules.hiring_managers.router import router as hiring_managers_router
+from app.modules.quiz.admin_router import router as quiz_admin_router
+from app.modules.recruiters.router import router as recruiters_router
+from app.modules.tasks.admin_router import router as tasks_admin_router
+from app.modules.tasks.router import router as tasks_router
+from app.modules.vacancies.candidate_selection_router import router as candidate_selection_router
+from app.modules.vacancies.interview_management_router import router as interview_management_router
 from app.modules.vacancies.pools_router import router as pools_router
 from app.modules.vacancies.tracks_router import router as tracks_router
-from app.modules.vacancies.vacancies_router import router as vacancies_router
+from app.modules.vacancies.vacancy_management_router import router as vacancy_management_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(candidates_router, prefix="/api/candidates", tags=["candidates"])
+app.include_router(quiz_router, prefix="/api/quiz", tags=["quiz"])
+app.include_router(quiz_admin_router, prefix="/api/quiz/admin", tags=["quiz-admin"])
 app.include_router(hiring_managers_router, prefix="/api/hiring-managers", tags=["hiring-managers"])
+app.include_router(recruiters_router, prefix="/api/recruiters", tags=["recruiters"])
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(tasks_admin_router, prefix="/api/tasks/admin", tags=["tasks-admin"])
 app.include_router(tracks_router, prefix="/api/tracks", tags=["tracks"])
-app.include_router(vacancies_router, prefix="/api/vacancies", tags=["vacancies"])
+app.include_router(vacancy_management_router, prefix="/api/vacancies", tags=["vacancy-management"])
+app.include_router(candidate_selection_router, prefix="/api/vacancies", tags=["candidate-selection"])
+app.include_router(interview_management_router, prefix="/api/vacancies", tags=["interview-management"])
 app.include_router(pools_router, prefix="/api/candidate-pools", tags=["candidate-pools"])

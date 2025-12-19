@@ -35,6 +35,9 @@ from app.shared.models import User  # noqa: F401
 from app.modules.candidates.models import Candidate  # noqa: F401
 from app.modules.vacancies.models import Track, Vacancy, CandidatePool, InterviewFeedback  # noqa: F401
 from app.modules.hiring_managers.models import HiringManager  # noqa: F401
+from app.modules.quiz.models import QuizBlock, QuizQuestion, QuizSession, QuizAnswer, TrackQuizBlock  # noqa: F401
+from app.modules.recruiters.models import Recruiter  # noqa: F401
+from app.modules.tasks.models import TaskType, RecruiterTask  # noqa: F401
 
 target_metadata = Base.metadata
 

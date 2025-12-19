@@ -77,7 +77,10 @@ class VacancyService:
 
     @staticmethod
     async def create_vacancy(db: AsyncSession, vacancy_data: VacancyCreate) -> Vacancy:
-        """Create a new vacancy (always starts as DRAFT)."""
+        """Create a new vacancy (always starts as DRAFT) and create approval task."""
+        from app.modules.hiring_managers.models import HiringManager
+        from app.modules.tasks.service import TaskService
+
         vacancy = Vacancy(
             track_id=vacancy_data.track_id,
             hiring_manager_id=vacancy_data.hiring_manager_id,
@@ -87,6 +90,23 @@ class VacancyService:
         db.add(vacancy)
         await db.commit()
         await db.refresh(vacancy)
+
+        # Load track and hiring manager for task context
+        track_result = await db.execute(select(Track).where(Track.id == vacancy.track_id))
+        track = track_result.scalar_one()
+
+        hm_result = await db.execute(select(HiringManager).where(HiringManager.id == vacancy.hiring_manager_id))
+        hiring_manager = hm_result.scalar_one()
+
+        # Create approval task
+        await TaskService.create_vacancy_approval_task(
+            db=db,
+            vacancy_id=vacancy.id,
+            vacancy_description=vacancy.description,
+            track_name=track.name,
+            hiring_manager_name=hiring_manager.full_name,
+        )
+
         return vacancy
 
     @staticmethod

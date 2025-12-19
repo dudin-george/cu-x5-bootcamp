@@ -24,16 +24,6 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
-    # Telegram
-    telegram_bot_token_candidate: str = ""
-    telegram_bot_token_hm: str = ""
-
-    # ML Service
-    ml_service_url: str = "http://localhost:8001"
-
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
-
     # CORS
     frontend_url: str = "http://localhost:5173"
 
