@@ -15,10 +15,11 @@ router = Router()
 
 
 @router.callback_query(F.data == "start_quiz")
-async def show_track_selection(callback: types.CallbackQuery, state: FSMContext) -> None:
-    """Show track selection from API."""
+async def start_quiz_auto(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """Start quiz automatically using priority1 from form."""
     data = await state.get_data()
     candidate_id = data.get("candidate_id")
+    priority1 = data.get("priority1")
     
     # Если candidate_id не сохранён, получаем по telegram_id
     if not candidate_id:
@@ -34,7 +35,8 @@ async def show_track_selection(callback: types.CallbackQuery, state: FSMContext)
             return
         
         candidate_id = candidate.get("id")
-        await state.update_data(candidate_id=candidate_id)
+        priority1 = candidate.get("priority1")
+        await state.update_data(candidate_id=candidate_id, priority1=priority1)
     
     # Получаем треки с API
     tracks = await api_client.get_tracks(active_only=True)
@@ -47,27 +49,76 @@ async def show_track_selection(callback: types.CallbackQuery, state: FSMContext)
         await callback.answer()
         return
     
-    # Создаём кнопки с треками (callback_data = "track_{id}")
-    buttons = []
+    # Ищем track_id по priority1
+    track_id = None
+    track_name = priority1
     for track in tracks:
-        track_id = track.get("id")
-        track_name = track.get("name", "Unknown")
-        buttons.append([
-            InlineKeyboardButton(
-                text=track_name,
-                callback_data=f"track_{track_id}"
-            )
-        ])
+        if track.get("name") == priority1:
+            track_id = track.get("id")
+            break
     
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    # Если не нашли priority1 - показываем выбор
+    if not track_id:
+        buttons = []
+        for track in tracks:
+            tid = track.get("id")
+            tname = track.get("name", "Unknown")
+            buttons.append([
+                InlineKeyboardButton(
+                    text=tname,
+                    callback_data=f"track_{tid}"
+                )
+            ])
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        
+        await callback.message.edit_text(
+            "📚 Выбери направление для квиза:\n\n"
+            "⏱ Квиз длится 15 минут\n"
+            "❗ Попытка только одна",
+            reply_markup=keyboard,
+        )
+        await state.set_state(InternForm.selecting_track)
+        await callback.answer()
+        return
     
+    # Автоматически запускаем квиз по priority1
     await callback.message.edit_text(
-        "📚 Выбери направление для квиза:\n\n"
-        "⏱ Квиз длится 15 минут\n"
-        "❗ Попытка только одна",
-        reply_markup=keyboard,
+        f"🚀 Запускаю квиз по направлению **{track_name}**...\n\n"
+        "⏱ 15 минут\n"
+        "❗ Попытка только одна"
     )
-    await state.set_state(InternForm.selecting_track)
+    
+    # Запускаем квиз
+    response = await api_client.start_quiz(str(candidate_id), track_id)
+    
+    if not response:
+        await callback.message.edit_text("❌ Не удалось начать квиз. Попробуй позже.")
+        await callback.answer()
+        return
+    
+    if "detail" in response:
+        await callback.message.edit_text(f"❌ {response.get('detail', 'Квиз недоступен')}")
+        await callback.answer()
+        return
+    
+    session_id = response.get("session_id")
+    question = response.get("question")
+    
+    if not session_id or not question:
+        await callback.message.edit_text("❌ Ошибка: неверный ответ от сервера.")
+        await callback.answer()
+        return
+    
+    await state.update_data(
+        quiz_session_id=str(session_id),
+        current_question_id=str(question.get("id")),
+        quiz_track_id=track_id,
+    )
+    
+    text = format_question(question)
+    await callback.message.edit_text(text, reply_markup=QUIZ_ANSWER_KEYBOARD)
+    await state.set_state(InternForm.in_quiz)
     await callback.answer()
 
 
@@ -251,14 +302,15 @@ async def handle_quiz_end(
             last_attempt = attempts["attempts"][0]
             total = last_attempt.get("total_questions", 0)
             correct = last_attempt.get("correct_answers", 0)
-            score = last_attempt.get("score")
+            
+            # Считаем процент сами (API возвращает score = количество правильных)
+            accuracy = (correct / total * 100) if total > 0 else 0
             
             results_text = (
                 f"\n\n📊 **Результаты:**\n"
                 f"✅ Правильных: {correct}/{total}\n"
+                f"📈 Точность: {accuracy:.0f}%\n"
             )
-            if score is not None:
-                results_text += f"📈 Точность: {score:.0f}%\n"
     
     text = (
         f"🎉 {message}\n"

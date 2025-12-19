@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from src.keyboards import make_keyboard, REMOVE_KEYBOARD
 from src.states import InternForm
+from src.message_utils import reply_clean
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -17,6 +18,12 @@ router = Router()
 async def cmd_start(message: types.Message, state: FSMContext) -> None:
     """Handle /start command."""
     await state.clear()
+    
+    # Delete /start command
+    try:
+        await message.delete()
+    except Exception:
+        pass
     
     greeting = (
         "👋 Привет! Я бот для подачи заявки на стажировку в X5 Tech.\n\n"
@@ -28,7 +35,8 @@ async def cmd_start(message: types.Message, state: FSMContext) -> None:
         row_width=1,
     )
     
-    await message.answer(greeting, reply_markup=kb)
+    sent = await message.answer(greeting, reply_markup=kb)
+    await state.update_data(last_bot_message_id=sent.message_id)
     await state.set_state(InternForm.waiting_for_choice)
 
 
@@ -38,19 +46,21 @@ async def process_choice(message: types.Message, state: FSMContext) -> None:
     text = message.text
     
     if text == "📝 Заполнить вручную":
-        await message.answer(
+        await reply_clean(
+            message, state,
             "Отлично! Давай начнём.\nВведи свою **Фамилию**:",
             reply_markup=REMOVE_KEYBOARD,
         )
         await state.set_state(InternForm.surname)
         
     elif text == "📄 Загрузить резюме (PDF)":
-        await message.answer(
+        await reply_clean(
+            message, state,
             "Пожалуйста, отправь мне файл резюме в формате **PDF** (до 5 МБ).",
             reply_markup=REMOVE_KEYBOARD,
         )
         await state.set_state(InternForm.upload_resume)
         
     else:
-        await message.answer("Пожалуйста, выбери один из вариантов кнопками.")
+        await reply_clean(message, state, "Пожалуйста, выбери один из вариантов кнопками.")
 

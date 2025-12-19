@@ -10,6 +10,7 @@ from src.states import InternForm
 from src.data_loader import COURSES, UNIVERSITIES, SOURCES
 from src.api_client import api_client
 from src.handlers.summary import show_summary
+from src.message_utils import reply_clean
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -35,7 +36,7 @@ async def process_surname(message: types.Message, state: FSMContext) -> None:
         await show_summary(message, state)
         return
     
-    await message.answer("Введи своё **Имя**:")
+    await reply_clean(message, state, "Введи своё **Имя**:")
     await state.set_state(InternForm.name)
 
 
@@ -50,7 +51,8 @@ async def process_name(message: types.Message, state: FSMContext) -> None:
         return
     
     kb = make_keyboard([], request_contact=True)
-    await message.answer(
+    await reply_clean(
+        message, state,
         "Нажми кнопку, чтобы отправить **номер телефона**:",
         reply_markup=kb,
     )
@@ -61,19 +63,20 @@ async def process_name(message: types.Message, state: FSMContext) -> None:
 async def process_phone(message: types.Message, state: FSMContext) -> None:
     """Handle phone input (contact sharing only)."""
     if not message.contact:
-        await message.answer(
+        await reply_clean(
+            message, state,
             "Пожалуйста, используй кнопку **📱 Отправить номер телефона**."
         )
         return
     
     # Verify it's user's own contact
     if message.contact.user_id != message.from_user.id:
-        await message.answer("Пожалуйста, отправь СВОЙ номер телефона.")
+        await reply_clean(message, state, "Пожалуйста, отправь СВОЙ номер телефона.")
         return
     
     phone = message.contact.phone_number
     if len(phone) < 7:
-        await message.answer("Некорректный номер. Попробуй ещё раз.")
+        await reply_clean(message, state, "Некорректный номер. Попробуй ещё раз.")
         return
     
     await state.update_data(phone=phone)
@@ -83,7 +86,7 @@ async def process_phone(message: types.Message, state: FSMContext) -> None:
         await show_summary(message, state)
         return
     
-    await message.answer("Введи свою **почту**:", reply_markup=REMOVE_KEYBOARD)
+    await reply_clean(message, state, "Введи свою **почту**:", reply_markup=REMOVE_KEYBOARD)
     await state.set_state(InternForm.email)
 
 
@@ -91,7 +94,7 @@ async def process_phone(message: types.Message, state: FSMContext) -> None:
 async def process_email(message: types.Message, state: FSMContext) -> None:
     """Handle email input."""
     if "@" not in message.text:
-        await message.answer("Пожалуйста, введи корректный email.")
+        await reply_clean(message, state, "Пожалуйста, введи корректный email.")
         return
     
     await state.update_data(email=message.text)
@@ -101,7 +104,7 @@ async def process_email(message: types.Message, state: FSMContext) -> None:
         await show_summary(message, state)
         return
     
-    await message.answer("Вставь **ссылку на резюме** (или напиши 'нет'):")
+    await reply_clean(message, state, "Вставь **ссылку на резюме** (или напиши 'нет'):")
     await state.set_state(InternForm.resume_link)
 
 
@@ -122,7 +125,8 @@ async def ask_priority1(message: types.Message, state: FSMContext) -> None:
     """Ask for priority 1 with tracks from API."""
     tracks = await get_track_names()
     if not tracks:
-        await message.answer(
+        await reply_clean(
+            message, state,
             "⚠️ Не удалось загрузить направления. Напиши вручную:",
             reply_markup=REMOVE_KEYBOARD,
         )
@@ -130,7 +134,7 @@ async def ask_priority1(message: types.Message, state: FSMContext) -> None:
         # Сохраняем в state для валидации
         await state.update_data(available_tracks=tracks)
         kb = make_keyboard(tracks)
-        await message.answer("Выбери **первый приоритет** (направление):", reply_markup=kb)
+        await reply_clean(message, state, "Выбери **первый приоритет** (направление):", reply_markup=kb)
     await state.set_state(InternForm.priority1)
 
 
@@ -145,7 +149,7 @@ async def process_priority1(message: types.Message, state: FSMContext) -> None:
     # Принимаем любой текст если треки не загрузились
     if tracks and message.text not in tracks:
         kb = make_keyboard(tracks)
-        await message.answer("Выбери направление кнопкой.", reply_markup=kb)
+        await reply_clean(message, state, "Выбери направление кнопкой.", reply_markup=kb)
         return
     
     await state.update_data(priority1=message.text)
@@ -170,9 +174,9 @@ async def ask_priority2(message: types.Message, state: FSMContext) -> None:
     
     if tracks:
         kb = make_keyboard(tracks)
-        await message.answer("Выбери **второй приоритет**:", reply_markup=kb)
+        await reply_clean(message, state, "Выбери **второй приоритет**:", reply_markup=kb)
     else:
-        await message.answer("Укажи **второй приоритет**:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Укажи **второй приоритет**:", reply_markup=REMOVE_KEYBOARD)
     
     await state.set_state(InternForm.priority2)
 
@@ -186,7 +190,7 @@ async def process_priority2(message: types.Message, state: FSMContext) -> None:
     # Принимаем любой текст если треки не загрузились
     if tracks and message.text not in tracks:
         kb = make_keyboard(tracks)
-        await message.answer("Выбери направление кнопкой.", reply_markup=kb)
+        await reply_clean(message, state, "Выбери направление кнопкой.", reply_markup=kb)
         return
     
     await state.update_data(priority2=message.text)
@@ -196,7 +200,7 @@ async def process_priority2(message: types.Message, state: FSMContext) -> None:
         return
     
     kb = make_keyboard(COURSES, add_other=True)
-    await message.answer("Укажи **ступень обучения**:", reply_markup=kb)
+    await reply_clean(message, state, "Укажи **ступень обучения**:", reply_markup=kb)
     await state.set_state(InternForm.course)
 
 
@@ -206,7 +210,7 @@ async def process_priority2(message: types.Message, state: FSMContext) -> None:
 async def process_course(message: types.Message, state: FSMContext) -> None:
     """Handle course selection."""
     if message.text == "Другое":
-        await message.answer("Напиши ступень обучения:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Напиши ступень обучения:", reply_markup=REMOVE_KEYBOARD)
         await state.set_state(InternForm.course_custom)
         return
     
@@ -236,7 +240,7 @@ async def process_course_custom(message: types.Message, state: FSMContext) -> No
 async def ask_university(message: types.Message, state: FSMContext) -> None:
     """Ask for university."""
     kb = make_keyboard(UNIVERSITIES, add_other=True)
-    await message.answer("Выбери **ВУЗ**:", reply_markup=kb)
+    await reply_clean(message, state, "Выбери **ВУЗ**:", reply_markup=kb)
     await state.set_state(InternForm.university)
 
 
@@ -244,7 +248,7 @@ async def ask_university(message: types.Message, state: FSMContext) -> None:
 async def process_university(message: types.Message, state: FSMContext) -> None:
     """Handle university selection."""
     if message.text == "Другое":
-        await message.answer("Напиши название ВУЗа:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Напиши название ВУЗа:", reply_markup=REMOVE_KEYBOARD)
         await state.set_state(InternForm.university_custom)
         return
     
@@ -273,7 +277,8 @@ async def process_university_custom(message: types.Message, state: FSMContext) -
 
 async def ask_specialty(message: types.Message, state: FSMContext) -> None:
     """Ask for specialty."""
-    await message.answer(
+    await reply_clean(
+        message, state,
         "Укажи **специальность (факультет)**:",
         reply_markup=REMOVE_KEYBOARD,
     )
@@ -291,7 +296,8 @@ async def process_specialty(message: types.Message, state: FSMContext) -> None:
         return
     
     kb = make_keyboard(["20", "30", "40"], row_width=3)
-    await message.answer(
+    await reply_clean(
+        message, state,
         "Какую **занятость** (часов в неделю) рассматриваешь?",
         reply_markup=kb,
     )
@@ -306,7 +312,7 @@ async def process_employment(message: types.Message, state: FSMContext) -> None:
     valid = ["20", "30", "40"]
     if message.text not in valid:
         kb = make_keyboard(valid, row_width=3)
-        await message.answer("Выбери вариант кнопкой.", reply_markup=kb)
+        await reply_clean(message, state, "Выбери вариант кнопкой.", reply_markup=kb)
         return
     
     await state.update_data(employment_hours=message.text)
@@ -317,7 +323,7 @@ async def process_employment(message: types.Message, state: FSMContext) -> None:
         return
     
     kb = make_keyboard(["Москва", "Санкт-Петербург", "Казань"], add_other=True)
-    await message.answer("Укажи **город**:", reply_markup=kb)
+    await reply_clean(message, state, "Укажи **город**:", reply_markup=kb)
     await state.set_state(InternForm.city)
 
 
@@ -325,7 +331,7 @@ async def process_employment(message: types.Message, state: FSMContext) -> None:
 async def process_city(message: types.Message, state: FSMContext) -> None:
     """Handle city selection."""
     if message.text == "Другое":
-        await message.answer("Напиши город:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Напиши город:", reply_markup=REMOVE_KEYBOARD)
         await state.set_state(InternForm.city_custom)
         return
     
@@ -355,7 +361,7 @@ async def process_city_custom(message: types.Message, state: FSMContext) -> None
 async def ask_source(message: types.Message, state: FSMContext) -> None:
     """Ask for source."""
     kb = make_keyboard(SOURCES, row_width=1)
-    await message.answer("Откуда узнал о стажировке?", reply_markup=kb)
+    await reply_clean(message, state, "Откуда узнал о стажировке?", reply_markup=kb)
     await state.set_state(InternForm.source)
 
 
@@ -363,7 +369,7 @@ async def ask_source(message: types.Message, state: FSMContext) -> None:
 async def process_source(message: types.Message, state: FSMContext) -> None:
     """Handle source selection."""
     if message.text == "Другое":
-        await message.answer("Укажи источник:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Укажи источник:", reply_markup=REMOVE_KEYBOARD)
         await state.set_state(InternForm.source_custom)
         return
     
@@ -394,7 +400,7 @@ async def process_source_custom(message: types.Message, state: FSMContext) -> No
 
 async def ask_birth_year(message: types.Message, state: FSMContext) -> None:
     """Ask for birth year."""
-    await message.answer("Укажи **год рождения**:", reply_markup=REMOVE_KEYBOARD)
+    await reply_clean(message, state, "Укажи **год рождения**:", reply_markup=REMOVE_KEYBOARD)
     await state.set_state(InternForm.birth_year)
 
 
@@ -402,7 +408,7 @@ async def ask_birth_year(message: types.Message, state: FSMContext) -> None:
 async def process_birth_year(message: types.Message, state: FSMContext) -> None:
     """Handle birth year input."""
     if not message.text.isdigit() or len(message.text) != 4:
-        await message.answer("Введи год (4 цифры).")
+        await reply_clean(message, state, "Введи год (4 цифры).")
         return
     
     await state.update_data(birth_year=message.text)
@@ -413,7 +419,7 @@ async def process_birth_year(message: types.Message, state: FSMContext) -> None:
         return
     
     kb = make_keyboard(["РФ"], add_other=True)
-    await message.answer("Укажи **гражданство**:", reply_markup=kb)
+    await reply_clean(message, state, "Укажи **гражданство**:", reply_markup=kb)
     await state.set_state(InternForm.citizenship)
 
 
@@ -421,7 +427,7 @@ async def process_birth_year(message: types.Message, state: FSMContext) -> None:
 async def process_citizenship(message: types.Message, state: FSMContext) -> None:
     """Handle citizenship selection."""
     if message.text == "Другое":
-        await message.answer("Напиши гражданство:", reply_markup=REMOVE_KEYBOARD)
+        await reply_clean(message, state, "Напиши гражданство:", reply_markup=REMOVE_KEYBOARD)
         await state.set_state(InternForm.citizenship_custom)
         return
     
@@ -450,7 +456,8 @@ async def process_citizenship_custom(message: types.Message, state: FSMContext) 
 
 async def ask_tech_stack(message: types.Message, state: FSMContext) -> None:
     """Ask for tech stack."""
-    await message.answer(
+    await reply_clean(
+        message, state,
         "Перечисли **языки и технологии**, которые используешь:",
         reply_markup=REMOVE_KEYBOARD,
     )

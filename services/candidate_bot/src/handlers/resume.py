@@ -12,6 +12,7 @@ from src.parser import ResumeParser
 from src.data_loader import UNIVERSITIES
 from src.handlers.summary import show_summary
 from src.keyboards import REMOVE_KEYBOARD
+from src.message_utils import reply_clean
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -28,15 +29,15 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
         or document.file_name.lower().endswith(".pdf")
     )
     if not is_pdf:
-        await message.answer("Пожалуйста, загрузи файл в формате PDF.")
+        await reply_clean(message, state, "Пожалуйста, загрузи файл в формате PDF.")
         return
     
     # Validate file size (5 MB)
     if document.file_size > 5 * 1024 * 1024:
-        await message.answer("Файл слишком большой. Максимум — 5 МБ.")
+        await reply_clean(message, state, "Файл слишком большой. Максимум — 5 МБ.")
         return
     
-    await message.answer("📄 Файл получен. Обрабатываю...")
+    await reply_clean(message, state, "📄 Файл получен. Обрабатываю...")
     
     # Download to temp file
     try:
@@ -52,11 +53,10 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
         # Validate content
         if not parser.validate_content():
             os.unlink(tmp_path)
-            await message.answer(
+            await reply_clean(
+                message, state,
                 "❌ Файл не похож на резюме.\n"
-                "Проверь файл или заполни анкету вручную."
-            )
-            await message.answer(
+                "Проверь файл или заполни анкету вручную.\n\n"
                 "Введи свою **Фамилию**:",
                 reply_markup=REMOVE_KEYBOARD,
             )
@@ -89,15 +89,14 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
             tech_stack=extracted.get("tech_stack") or "Не найдено",
         )
         
-        await message.answer("✅ Данные извлечены! Проверь и заполни пропуски.")
+        await reply_clean(message, state, "✅ Данные извлечены! Проверь и заполни пропуски.")
         await show_summary(message, state)
         
     except Exception as e:
         logger.exception(f"Error parsing resume: {e}")
-        await message.answer(
-            "❌ Ошибка при чтении файла. Заполним вручную."
-        )
-        await message.answer(
+        await reply_clean(
+            message, state,
+            "❌ Ошибка при чтении файла. Заполним вручную.\n\n"
             "Введи свою **Фамилию**:",
             reply_markup=REMOVE_KEYBOARD,
         )
@@ -107,7 +106,8 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
 @router.message(InternForm.upload_resume)
 async def handle_non_document(message: types.Message, state: FSMContext) -> None:
     """Handle non-document messages in upload state."""
-    await message.answer(
+    await reply_clean(
+        message, state,
         "Пожалуйста, отправь файл PDF.\n"
         "Или напиши /start чтобы заполнить вручную."
     )

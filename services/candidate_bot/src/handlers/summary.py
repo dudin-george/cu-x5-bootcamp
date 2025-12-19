@@ -2,7 +2,7 @@
 
 import logging
 
-from aiogram import Router, types, F
+from aiogram import Router, types, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -20,7 +20,23 @@ async def show_summary(message: types.Message, state: FSMContext) -> None:
         message: Message to reply to.
         state: FSM context.
     """
+    bot: Bot = message.bot
+    chat_id = message.chat.id
     data = await state.get_data()
+    
+    # Delete user message
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    
+    # Delete previous bot message
+    prev_msg_id = data.get("last_bot_message_id")
+    if prev_msg_id:
+        try:
+            await bot.delete_message(chat_id, prev_msg_id)
+        except Exception:
+            pass
     
     summary = (
         "📋 **Проверь свои данные:**\n\n"
@@ -80,7 +96,8 @@ async def show_summary(message: types.Message, state: FSMContext) -> None:
         ],
     ])
     
-    await message.answer(summary, reply_markup=keyboard)
+    sent = await bot.send_message(chat_id, summary, reply_markup=keyboard)
+    await state.update_data(last_bot_message_id=sent.message_id)
     await state.set_state(InternForm.confirm)
 
 
