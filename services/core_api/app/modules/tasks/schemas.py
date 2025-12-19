@@ -47,8 +47,6 @@ class RecruiterTaskCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500, description="Заголовок задачи")
     description: str | None = Field(None, description="Описание задачи")
     context: dict = Field(default_factory=dict, description="Контекст задачи (JSON)")
-    created_by_type: str | None = Field(None, description="Тип создателя")
-    created_by_id: str | None = Field(None, description="ID создателя")
 
 
 class RecruiterTaskResponse(BaseModel):

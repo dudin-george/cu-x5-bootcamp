@@ -166,19 +166,6 @@ class RecruiterTask(Base):
         comment="Дата завершения задачи",
     )
 
-    # Кто создал задачу (для аудита)
-    created_by_type: Mapped[str | None] = mapped_column(
-        String(50),
-        nullable=True,
-        comment="Тип создателя: hiring_manager, system, candidate",
-    )
-
-    created_by_id: Mapped[str | None] = mapped_column(
-        String(100),
-        nullable=True,
-        comment="ID создателя задачи",
-    )
-
     # Relationships
     task_type: Mapped["TaskType"] = relationship(
         "TaskType",

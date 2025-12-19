@@ -81,8 +81,6 @@ class TaskService:
             context=data.context,
             status=TaskStatus.POOL,  # Всегда создается в общем пуле
             assigned_to=None,  # Изначально не назначена
-            created_by_type=data.created_by_type,
-            created_by_id=data.created_by_id,
         )
         db.add(task)
         await db.commit()
