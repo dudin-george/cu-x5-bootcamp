@@ -152,34 +152,13 @@ class QuizEndResponse(BaseModel):
     """Response when quiz has ended."""
 
     type: Literal["end"] = Field("end", description="Response type: end")
-    results: QuizResults = Field(..., description="Final quiz results")
+    message: str = Field(..., description="Completion message")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "type": "end",
-                "results": {
-                    "session_id": "550e8400-e29b-41d4-a716-446655440000",
-                    "total_questions": 12,
-                    "correct_answers": 9,
-                    "wrong_answers": 3,
-                    "accuracy": 75.0,
-                    "completion_time_seconds": 900,
-                    "blocks_performance": [
-                        {
-                            "block_name": "Algorithms",
-                            "correct": 4,
-                            "total": 5,
-                            "accuracy": 80.0
-                        },
-                        {
-                            "block_name": "Python Basics",
-                            "correct": 5,
-                            "total": 7,
-                            "accuracy": 71.4
-                        }
-                    ]
-                }
+                "message": "Квиз завершен"
             }
         }
 
@@ -279,7 +258,6 @@ class QuizQuestionResponse(BaseModel):
     option_c: str = Field(..., description="Option C text")
     option_d: str = Field(..., description="Option D text")
     correct_answer: Literal["A", "B", "C", "D"] = Field(..., description="Correct answer")
-    difficulty: str = Field(..., description="Difficulty level")
     is_active: bool = Field(..., description="Is question active")
     created_at: datetime = Field(..., description="Created timestamp")
     updated_at: datetime = Field(..., description="Updated timestamp")

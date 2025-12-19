@@ -105,7 +105,6 @@ async def create_question(
         option_c=question.option_c,
         option_d=question.option_d,
         correct_answer=question.correct_answer,
-        difficulty=question.difficulty,
         is_active=question.is_active,
         created_at=question.created_at,
         updated_at=question.updated_at,

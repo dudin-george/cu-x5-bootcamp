@@ -202,11 +202,10 @@ async def submit_answer(
     # If time expired, finalize and return results
     if time_expired:
         await QuizSessionService.finalize_session(db, session)
-        results = await QuizAnswerService.calculate_results(db, session.id)
 
         return QuizEndResponse(
             type="end",
-            results=results,
+            message="Время на прохождение квиза истекло",
         )
 
     # Get next question
@@ -215,11 +214,10 @@ async def submit_answer(
     # If no more questions, finalize
     if not next_question:
         await QuizSessionService.finalize_session(db, session)
-        results = await QuizAnswerService.calculate_results(db, session.id)
 
         return QuizEndResponse(
             type="end",
-            results=results,
+            message="Квиз завершен",
         )
 
     # Quiz continues - get block

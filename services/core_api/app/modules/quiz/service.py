@@ -242,7 +242,7 @@ class QuizSessionService:
             QuizSession: Created session.
         """
         now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(seconds=15)  # TODO: Change back to minutes=15 after testing
+        expires_at = now + timedelta(minutes=15)
 
         session = QuizSession(
             candidate_id=request.candidate_id,
@@ -316,14 +316,11 @@ class QuizSessionService:
         """
         now = datetime.now(timezone.utc)
 
-        # Calculate score
-        total = session.total_questions
-        correct = session.correct_answers
-        score = (correct / total * 100.0) if total > 0 else 0.0
-
+        # Score = number of correct answers (for ranking/sorting)
+        # Accuracy = percentage (correct/total * 100) - calculated when needed
         session.status = "completed"
         session.ended_at = now
-        session.score = score
+        session.score = float(session.correct_answers)
 
         await db.commit()
         await db.refresh(session)
