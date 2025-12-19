@@ -4,8 +4,12 @@ config:
   environment: dev
   logLevel: INFO
   port: 8000
+  apiBaseUrl: "http://core-api:8000"
+  webhookPath: "/tg/candidate"
+  webhookBaseUrl: ""  # e.g., https://dev.x5teamintern.ru
 
 secrets:
+  # Set via: --set candidate-bot.secrets.telegramBotToken=xxx
   telegramBotToken: ""
   webhookSecret: ""
 

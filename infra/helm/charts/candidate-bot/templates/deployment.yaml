@@ -29,16 +29,22 @@ spec:
               value: {{ .Values.config.logLevel | quote }}
             - name: PORT
               value: {{ .Values.config.port | quote }}
-            - name: TELEGRAM_BOT_TOKEN
+            - name: TELEGRAM_BOT_TOKEN_CANDIDATE
               valueFrom:
                 secretKeyRef:
                   name: {{ include "candidate-bot.fullname" . }}-secrets
-                  key: TELEGRAM_BOT_TOKEN
-            - name: WEBHOOK_SECRET
+                  key: TELEGRAM_BOT_TOKEN_CANDIDATE
+            - name: WEBHOOK_SECRET_CANDIDATE
               valueFrom:
                 secretKeyRef:
                   name: {{ include "candidate-bot.fullname" . }}-secrets
-                  key: WEBHOOK_SECRET
+                  key: WEBHOOK_SECRET_CANDIDATE
+            - name: API_BASE_URL
+              value: {{ .Values.config.apiBaseUrl | quote }}
+            - name: WEBHOOK_PATH
+              value: {{ .Values.config.webhookPath | quote }}
+            - name: WEBHOOK_BASE_URL
+              value: {{ .Values.config.webhookBaseUrl | quote }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.path }}
