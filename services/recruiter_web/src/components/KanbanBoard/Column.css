@@ -4,6 +4,7 @@
   flex: 1;
   min-width: 280px;
   max-width: 320px;
+  height: 100%; /* Занимаем всю высоту родителя */
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: 14px;
@@ -23,6 +24,7 @@
   padding: 16px 18px;
   border-bottom: 1px solid var(--border-default);
   background: var(--bg-card);
+  flex-shrink: 0; /* Header не сжимается */
 }
 
 .column__title-row {
@@ -61,10 +63,11 @@
   gap: 10px;
   padding: 14px;
   flex: 1;
-  overflow-y: auto;
-  min-height: 200px;
+  overflow-y: auto; /* Прокрутка внутри колонки */
+  min-height: 0; /* Важно для flex overflow */
 }
 
+/* Красивый скроллбар */
 .column__content::-webkit-scrollbar {
   width: 6px;
 }
@@ -94,3 +97,50 @@
   border-radius: 10px;
 }
 
+/* Mobile */
+@media (max-width: 768px) {
+  .column {
+    max-width: 100%;
+    min-width: 100%;
+    height: auto;
+    max-height: 50vh; /* На мобильных — максимум половина экрана */
+  }
+  
+  .column__content {
+    max-height: calc(50vh - 60px); /* Минус header колонки */
+  }
+  
+  /* Первая колонка (бэклог) — больше места */
+  .column:first-child {
+    max-height: 60vh;
+  }
+  
+  .column:first-child .column__content {
+    max-height: calc(60vh - 60px);
+  }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 480px) {
+  .column {
+    max-height: 45vh;
+  }
+  
+  .column__content {
+    max-height: calc(45vh - 56px);
+    padding: 10px;
+    gap: 8px;
+  }
+  
+  .column__header {
+    padding: 12px 14px;
+  }
+  
+  .column:first-child {
+    max-height: 55vh;
+  }
+  
+  .column:first-child .column__content {
+    max-height: calc(55vh - 56px);
+  }
+}

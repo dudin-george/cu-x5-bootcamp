@@ -20,6 +20,24 @@ interface AuthProviderProps {
 }
 
 /**
+ * Проверяет, является ли ошибка 401 (не авторизован).
+ */
+function isUnauthorizedError(error: unknown): boolean {
+  if (error && typeof error === 'object') {
+    // Axios-style error
+    if ('response' in error) {
+      const response = (error as { response?: { status?: number } }).response;
+      return response?.status === 401;
+    }
+    // Ory client error
+    if ('status' in error) {
+      return (error as { status?: number }).status === 401;
+    }
+  }
+  return false;
+}
+
+/**
  * Провайдер авторизации.
  * 
  * В prod-окружении использует Ory для проверки сессии.
@@ -28,6 +46,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * Извлекает данные пользователя из Ory сессии.
@@ -66,10 +85,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data: session } = await oryClient.toSession();
       const extractedUser = extractUserFromSession(session);
       setUser(extractedUser);
-    } catch (error) {
-      // Сессия не найдена — редирект на логин
-      const currentUrl = window.location.href;
-      window.location.href = getLoginUrl(currentUrl);
+      setError(null);
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      
+      // Если 401 — пользователь не авторизован, редирект на логин
+      if (isUnauthorizedError(err)) {
+        const currentUrl = window.location.href;
+        window.location.href = getLoginUrl(currentUrl);
+        return;
+      }
+      
+      // Другие ошибки (CORS, network) — показываем ошибку
+      const errorMessage = err instanceof Error ? err.message : 'Ошибка авторизации';
+      setError(errorMessage);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -94,8 +124,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Создаём logout flow и редиректим на logout URL
       const { data } = await oryClient.createBrowserLogoutFlow();
       window.location.href = data.logout_url;
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (err) {
+      console.error('Logout failed:', err);
     }
   }, []);
 
@@ -107,6 +137,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isLoading,
     isAuthenticated: user !== null,
+    error,
     logout,
   };
 
