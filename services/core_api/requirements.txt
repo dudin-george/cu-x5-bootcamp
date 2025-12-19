@@ -19,3 +19,6 @@ passlib[bcrypt]>=1.7.4,<2.0.0
 
 # Environment
 python-dotenv>=1.2.1,<2.0.0
+
+# HTTP Client for Ory integration
+httpx>=0.27.0,<0.28.0
