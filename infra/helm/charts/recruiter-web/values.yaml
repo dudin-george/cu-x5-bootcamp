@@ -1,5 +1,9 @@
 replicaCount: 1
 
+# Image override (optional, defaults to global.image.tag)
+image:
+  tag: ""
+
 resources:
   requests:
     cpu: 25m

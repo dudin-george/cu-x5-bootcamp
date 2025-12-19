@@ -1,110 +1,62 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { AuthProvider, useAuth } from './auth';
+import { UserMenu } from './components/UserMenu';
+import { KanbanBoard } from './components/KanbanBoard';
+import { config } from './config';
+import './App.css';
 
-interface VersionInfo {
-  version: string
-  environment: string
-}
+/**
+ * Основной контент приложения.
+ * Показывается после загрузки авторизации.
+ */
+function AppContent() {
+  const { isLoading } = useAuth();
 
-function App() {
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/version')
-      .then(res => res.json())
-      .then(data => {
-        setVersionInfo(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setVersionInfo({ version: 'unknown', environment: 'unknown' })
-        setLoading(false)
-      })
-  }, [])
+  if (isLoading) {
+    return (
+      <div className="app">
+        <div className="app__loading">
+          <div className="app__loading-spinner" />
+          <span>Загрузка...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
-      <div className="grid-background"></div>
-      
       <header className="header">
-        <div className="logo">
-          <span className="logo-x5">X5</span>
-          <span className="logo-divider">/</span>
-          <span className="logo-hiring">HIRING</span>
+        <div className="header__left">
+          <div className="logo">
+            <span className="logo__x5">X5</span>
+            <span className="logo__divider">/</span>
+            <span className="logo__text">HIRING</span>
+          </div>
         </div>
-        <div className="env-badge">
-          {loading ? '...' : versionInfo?.environment.toUpperCase()}
+
+        <div className="header__right">
+          {config.environment === 'dev' && (
+            <span className="env-badge">DEV</span>
+          )}
+          <UserMenu />
         </div>
       </header>
 
       <main className="main">
-        <div className="hero">
-          <h1 className="title">
-            <span className="title-line">Recruiter</span>
-            <span className="title-line accent">Dashboard</span>
-          </h1>
-          <p className="subtitle">
-            Платформа для управления наймом
-          </p>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">📋</div>
-            <div className="stat-value">0</div>
-            <div className="stat-label">Активных вакансий</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <div className="stat-value">0</div>
-            <div className="stat-label">Кандидатов</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">💬</div>
-            <div className="stat-value">0</div>
-            <div className="stat-label">Интервью сегодня</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-value">0</div>
-            <div className="stat-label">Офферов</div>
-          </div>
-        </div>
-
-        <div className="status-section">
-          <h2 className="section-title">Статус системы</h2>
-          <div className="status-grid">
-            <div className="status-item online">
-              <span className="status-dot"></span>
-              <span className="status-name">Core API</span>
-            </div>
-            <div className="status-item online">
-              <span className="status-dot"></span>
-              <span className="status-name">Candidate Bot</span>
-            </div>
-            <div className="status-item online">
-              <span className="status-dot"></span>
-              <span className="status-name">HM Bot</span>
-            </div>
-            <div className="status-item online">
-              <span className="status-dot"></span>
-              <span className="status-name">Worker</span>
-            </div>
-          </div>
-        </div>
+        <KanbanBoard />
       </main>
-
-      <footer className="footer">
-        <div className="footer-content">
-          <span>X5 Hiring Bootcamp</span>
-          <span className="footer-divider">•</span>
-          <span>v{loading ? '...' : versionInfo?.version}</span>
-        </div>
-      </footer>
     </div>
-  )
+  );
 }
 
-export default App
+/**
+ * Корневой компонент приложения.
+ */
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
 
+export default App;
