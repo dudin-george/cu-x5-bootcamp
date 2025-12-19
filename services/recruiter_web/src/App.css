@@ -32,6 +32,57 @@
   }
 }
 
+/* Error */
+.app__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 100vh;
+  padding: 24px;
+  text-align: center;
+}
+
+.app__error h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--accent-red);
+  margin: 0;
+}
+
+.app__error p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 400px;
+}
+
+.app__error-hint {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.app__error button {
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 8px;
+}
+
+.app__error button:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--x5-green);
+}
+
 /* Header */
 .header {
   display: flex;

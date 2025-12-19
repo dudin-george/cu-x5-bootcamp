@@ -14,9 +14,11 @@ export interface AuthState {
   /** Пользователь авторизован */
   isAuthenticated: boolean;
   
+  /** Ошибка авторизации (CORS, network и т.д.) */
+  error: string | null;
+  
   /** Выполнить логаут */
   logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthState | null>(null);
-

@@ -83,10 +83,10 @@ export function KanbanBoard() {
       grouped[task.status].push(task);
     }
 
-    // Сортируем по дате создания (новые сверху)
+    // Сортируем по дате создания (старые сверху, новые снизу)
     for (const status of Object.keys(grouped) as TaskStatus[]) {
       grouped[status].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
     }
 

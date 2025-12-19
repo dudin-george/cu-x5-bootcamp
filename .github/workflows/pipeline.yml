@@ -216,12 +216,34 @@ jobs:
             --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
             --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \
             --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM }}" \
-            --wait --timeout 5m
+            --wait --timeout 10m \
+            --debug
 
       - name: Verify deployment
+        if: always()
         run: |
-          kubectl get pods -n dev
+          echo "=== PODS ==="
+          kubectl get pods -n dev -o wide
+          echo ""
+          echo "=== PODS STATUS ==="
+          kubectl get pods -n dev -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.phase}{"\t"}{.status.containerStatuses[*].ready}{"\n"}{end}'
+          echo ""
+          echo "=== RECENT EVENTS ==="
+          kubectl get events -n dev --sort-by='.lastTimestamp' | tail -20
+          echo ""
+          echo "=== INGRESS ==="
           kubectl get ingress -n dev
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== FAILED PODS LOGS ==="
+          for pod in $(kubectl get pods -n dev --field-selector=status.phase!=Running -o jsonpath='{.items[*].metadata.name}'); do
+            echo "--- Logs for $pod ---"
+            kubectl logs $pod -n dev --all-containers=true --tail=50 || true
+            echo "--- Init container logs for $pod ---"
+            kubectl logs $pod -n dev -c migrations --tail=50 || true
+          done
 
   # ============ DEPLOY PROD ============
   deploy-prod:
@@ -255,16 +277,38 @@ jobs:
           helm upgrade --install x5-app infra/helm/charts/app \
             --namespace prod --create-namespace \
             -f infra/helm/charts/app/values-prod.yaml \
-            --set global.image.tag=${{ github.sha }}-prod \
+            --set global.image.tag=${{ github.sha }} \
             --set recruiter-web.image.tag=${{ github.sha }}-prod \
             --set core-api.secrets.databaseUrl="${{ secrets.DATABASE_URL }}" \
             --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
             --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
             --set hm-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_HM }}" \
             --set hm-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_HM }}" \
-            --wait --timeout 5m
+            --wait --timeout 10m \
+            --debug
 
       - name: Verify deployment
+        if: always()
         run: |
-          kubectl get pods -n prod
+          echo "=== PODS ==="
+          kubectl get pods -n prod -o wide
+          echo ""
+          echo "=== PODS STATUS ==="
+          kubectl get pods -n prod -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.phase}{"\t"}{.status.containerStatuses[*].ready}{"\n"}{end}'
+          echo ""
+          echo "=== RECENT EVENTS ==="
+          kubectl get events -n prod --sort-by='.lastTimestamp' | tail -20
+          echo ""
+          echo "=== INGRESS ==="
           kubectl get ingress -n prod
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== FAILED PODS LOGS ==="
+          for pod in $(kubectl get pods -n prod --field-selector=status.phase!=Running -o jsonpath='{.items[*].metadata.name}'); do
+            echo "--- Logs for $pod ---"
+            kubectl logs $pod -n prod --all-containers=true --tail=50 || true
+            echo "--- Init container logs for $pod ---"
+            kubectl logs $pod -n prod -c migrations --tail=50 || true
+          done

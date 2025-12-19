@@ -2,8 +2,8 @@
   display: flex;
   gap: 20px;
   padding: 24px;
+  height: calc(100vh - 73px); /* Высота экрана минус header */
   overflow-x: auto;
-  min-height: calc(100vh - 140px);
 }
 
 .kanban-board--loading,
@@ -50,7 +50,7 @@
   border-color: var(--border-hover);
 }
 
-/* Responsive */
+/* Tablet */
 @media (max-width: 1200px) {
   .kanban-board {
     padding: 16px;
@@ -58,15 +58,13 @@
   }
 }
 
+/* Mobile */
 @media (max-width: 768px) {
   .kanban-board {
     flex-direction: column;
     padding: 12px;
-  }
-
-  .kanban-board .column {
-    max-width: 100%;
-    min-width: 100%;
+    height: auto;
+    min-height: calc(100vh - 65px);
+    overflow-x: visible;
   }
 }
-

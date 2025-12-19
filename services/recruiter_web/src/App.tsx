@@ -9,7 +9,7 @@ import './App.css';
  * Показывается после загрузки авторизации.
  */
 function AppContent() {
-  const { isLoading } = useAuth();
+  const { isLoading, error } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,6 +17,26 @@ function AppContent() {
         <div className="app__loading">
           <div className="app__loading-spinner" />
           <span>Загрузка...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app">
+        <div className="app__error">
+          <h1>Ошибка авторизации</h1>
+          <p>{error}</p>
+          <p className="app__error-hint">
+            Возможные причины:
+            <br />• CORS не настроен в Ory Console
+            <br />• Cookie domain не настроен
+            <br />• Сетевая ошибка
+          </p>
+          <button onClick={() => window.location.reload()}>
+            Попробовать снова
+          </button>
         </div>
       </div>
     );
