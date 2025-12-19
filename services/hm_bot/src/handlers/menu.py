@@ -19,7 +19,8 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext) -> None
     await callback.answer()
 
     data = await state.get_data()
-    name = data.get("hm_name", "").split()[0] or "друг"
+    parts = data.get("hm_name", "").split()
+    name = parts[0] if parts else "друг"
 
     await callback.message.edit_text(
         texts.WELCOME_BACK.format(name=name),
