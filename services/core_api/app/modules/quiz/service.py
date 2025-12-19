@@ -242,7 +242,7 @@ class QuizSessionService:
             QuizSession: Created session.
         """
         now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(minutes=15)
+        expires_at = now + timedelta(seconds=15)  # TODO: Change back to minutes=15 after testing
 
         session = QuizSession(
             candidate_id=request.candidate_id,

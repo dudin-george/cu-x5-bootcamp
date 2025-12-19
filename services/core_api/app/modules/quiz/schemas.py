@@ -95,21 +95,13 @@ class QuizResults(BaseModel):
 class QuizStartResponse(BaseModel):
     """Response when quiz is started."""
 
-    session_id: uuid.UUID = Field(..., description="Quiz session UUID")
-    track_name: str = Field(..., description="Track name")
-    total_duration_seconds: int = Field(900, description="Total quiz duration (15 minutes)")
-    started_at: datetime = Field(..., description="Quiz start timestamp")
-    expires_at: datetime = Field(..., description="Quiz expiration timestamp")
+    session_id: uuid.UUID = Field(..., description="Quiz session UUID for submitting answers")
     question: QuestionResponse = Field(..., description="First question")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
-                "track_name": "Python Backend",
-                "total_duration_seconds": 900,
-                "started_at": "2025-01-15T10:00:00Z",
-                "expires_at": "2025-01-15T10:15:00Z",
                 "question": {
                     "id": "660e8400-e29b-41d4-a716-446655440001",
                     "text": "Что такое декоратор в Python?",
@@ -133,18 +125,14 @@ class QuizStartResponse(BaseModel):
 class QuizContinueResponse(BaseModel):
     """Response when quiz continues with next question."""
 
-    type: Literal["continue"] = Field("continue", description="Response type discriminator")
-    time_remaining_seconds: int = Field(..., description="Time remaining in quiz")
-    questions_answered: int = Field(..., description="Number of questions answered so far")
-    next_question: QuestionResponse = Field(..., description="Next question")
+    type: Literal["continue"] = Field("continue", description="Response type: continue")
+    question: QuestionResponse = Field(..., description="Next question")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "type": "continue",
-                "time_remaining_seconds": 823,
-                "questions_answered": 5,
-                "next_question": {
+                "question": {
                     "id": "770e8400-e29b-41d4-a716-446655440002",
                     "text": "Что вернет list.pop()?",
                     "block_name": "Python Basics",
@@ -163,17 +151,13 @@ class QuizContinueResponse(BaseModel):
 class QuizEndResponse(BaseModel):
     """Response when quiz has ended."""
 
-    type: Literal["end"] = Field("end", description="Response type discriminator")
-    reason: Literal["timeout", "all_questions_answered"] = Field(
-        ..., description="Why quiz ended"
-    )
+    type: Literal["end"] = Field("end", description="Response type: end")
     results: QuizResults = Field(..., description="Final quiz results")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "type": "end",
-                "reason": "timeout",
                 "results": {
                     "session_id": "550e8400-e29b-41d4-a716-446655440000",
                     "total_questions": 12,

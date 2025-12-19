@@ -69,6 +69,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.candidates.quiz_router import router as quiz_router
 from app.modules.candidates.router import router as candidates_router
 from app.modules.hiring_managers.router import router as hiring_managers_router
+from app.modules.quiz.admin_router import router as quiz_admin_router
 from app.modules.vacancies.candidate_selection_router import router as candidate_selection_router
 from app.modules.vacancies.interview_management_router import router as interview_management_router
 from app.modules.vacancies.pools_router import router as pools_router
@@ -78,6 +79,7 @@ from app.modules.vacancies.vacancy_management_router import router as vacancy_ma
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(candidates_router, prefix="/api/candidates", tags=["candidates"])
 app.include_router(quiz_router, prefix="/api/quiz", tags=["quiz"])
+app.include_router(quiz_admin_router, prefix="/api/quiz/admin", tags=["quiz-admin"])
 app.include_router(hiring_managers_router, prefix="/api/hiring-managers", tags=["hiring-managers"])
 app.include_router(tracks_router, prefix="/api/tracks", tags=["tracks"])
 app.include_router(vacancy_management_router, prefix="/api/vacancies", tags=["vacancy-management"])

@@ -130,10 +130,6 @@ async def start_quiz(
 
     return QuizStartResponse(
         session_id=session.id,
-        track_name=track.name,
-        total_duration_seconds=900,
-        started_at=session.started_at,
-        expires_at=session.expires_at,
         question=format_question(first_question, first_block.block.name, 1),
     )
 
@@ -210,7 +206,6 @@ async def submit_answer(
 
         return QuizEndResponse(
             type="end",
-            reason="timeout",
             results=results,
         )
 
@@ -224,7 +219,6 @@ async def submit_answer(
 
         return QuizEndResponse(
             type="end",
-            reason="all_questions_answered",
             results=results,
         )
 
@@ -232,14 +226,9 @@ async def submit_answer(
     block = await db.get(QuizBlock, next_question.block_id)
     questions_answered = session.total_questions
 
-    # Calculate remaining time
-    time_remaining = int((session.expires_at - now).total_seconds())
-
     return QuizContinueResponse(
         type="continue",
-        time_remaining_seconds=max(0, time_remaining),
-        questions_answered=questions_answered,
-        next_question=format_question(
+        question=format_question(
             next_question,
             block.name if block else "Unknown",
             questions_answered + 1,
