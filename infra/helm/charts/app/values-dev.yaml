@@ -42,6 +42,7 @@ candidate-bot:
   config:
     environment: dev
     logLevel: DEBUG
+    webhookBaseUrl: "https://dev.x5teamintern.ru"
   secrets:
     telegramBotToken: ""
     webhookSecret: ""

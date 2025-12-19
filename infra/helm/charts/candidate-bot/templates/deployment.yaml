@@ -43,6 +43,8 @@ spec:
               value: {{ .Values.config.apiBaseUrl | quote }}
             - name: WEBHOOK_PATH
               value: {{ .Values.config.webhookPath | quote }}
+            - name: WEBHOOK_BASE_URL
+              value: {{ .Values.config.webhookBaseUrl | quote }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.path }}

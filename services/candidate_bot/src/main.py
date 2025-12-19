@@ -26,10 +26,21 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting Candidate Bot [{config.environment}]")
     setup_handlers()
     
-    # Set webhook if in production
-    if config.environment != "dev" and config.bot_token:
-        # Webhook will be set externally or via init container
-        logger.info(f"Webhook path: {config.webhook_url}")
+    # Set webhook if configured
+    if config.webhook_base_url and config.bot_token and config.webhook_secret:
+        webhook_url = config.webhook_url
+        logger.info(f"Setting webhook: {webhook_url}")
+        try:
+            await bot.set_webhook(
+                url=webhook_url,
+                secret_token=config.webhook_secret,
+                allowed_updates=["message", "callback_query"],
+            )
+            logger.info("Webhook set successfully")
+        except Exception as e:
+            logger.error(f"Failed to set webhook: {e}")
+    else:
+        logger.warning("Webhook not configured (missing WEBHOOK_BASE_URL)")
     
     yield
     
