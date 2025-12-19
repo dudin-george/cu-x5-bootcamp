@@ -174,6 +174,8 @@ class TaskService:
     ) -> RecruiterTask:
         """Complete task (IN_PROGRESS -> COMPLETED).
 
+        If task is vacancy_approval, activates the vacancy.
+
         Args:
             db: Database session.
             task: Task to complete.
@@ -184,6 +186,24 @@ class TaskService:
         now = datetime.now(timezone.utc)
         task.status = TaskStatus.COMPLETED
         task.completed_at = now
+
+        # Load task_type if not already loaded
+        if not hasattr(task, "task_type") or task.task_type is None:
+            await db.refresh(task, ["task_type"])
+
+        # Handle vacancy approval automation
+        if task.task_type.code == "vacancy_approval" and "vacancy_id" in task.context:
+            from app.modules.vacancies.models import Vacancy
+            from app.shared.enums import VacancyStatus
+
+            vacancy_id = task.context["vacancy_id"]
+            vacancy_result = await db.execute(
+                select(Vacancy).where(Vacancy.id == vacancy_id)
+            )
+            vacancy = vacancy_result.scalar_one_or_none()
+            if vacancy:
+                vacancy.status = VacancyStatus.ACTIVE
+
         await db.commit()
         await db.refresh(task)
         return task
@@ -195,6 +215,8 @@ class TaskService:
     ) -> RecruiterTask:
         """Reject task (IN_PROGRESS -> REJECTED).
 
+        If task is vacancy_approval, aborts the vacancy.
+
         Args:
             db: Database session.
             task: Task to reject.
@@ -205,6 +227,67 @@ class TaskService:
         now = datetime.now(timezone.utc)
         task.status = TaskStatus.REJECTED
         task.completed_at = now
+
+        # Load task_type if not already loaded
+        if not hasattr(task, "task_type") or task.task_type is None:
+            await db.refresh(task, ["task_type"])
+
+        # Handle vacancy approval automation
+        if task.task_type.code == "vacancy_approval" and "vacancy_id" in task.context:
+            from app.modules.vacancies.models import Vacancy
+            from app.shared.enums import VacancyStatus
+
+            vacancy_id = task.context["vacancy_id"]
+            vacancy_result = await db.execute(
+                select(Vacancy).where(Vacancy.id == vacancy_id)
+            )
+            vacancy = vacancy_result.scalar_one_or_none()
+            if vacancy:
+                vacancy.status = VacancyStatus.ABORTED
+
+        await db.commit()
+        await db.refresh(task)
+        return task
+
+    @staticmethod
+    async def create_vacancy_approval_task(
+        db: AsyncSession,
+        vacancy_id: int,
+        vacancy_description: str,
+        track_name: str,
+        hiring_manager_name: str,
+    ) -> RecruiterTask:
+        """Create vacancy approval task automatically when vacancy is created.
+
+        Args:
+            db: Database session.
+            vacancy_id: Vacancy ID.
+            vacancy_description: Vacancy description.
+            track_name: Track name.
+            hiring_manager_name: Hiring manager full name.
+
+        Returns:
+            RecruiterTask: Created task.
+        """
+        # Get vacancy_approval task type by code
+        task_type = await TaskTypeService.get_task_type_by_code(db, "vacancy_approval")
+        if not task_type:
+            raise ValueError("Task type 'vacancy_approval' not found. Please seed task_types table.")
+
+        task = RecruiterTask(
+            task_type_id=task_type.id,
+            title=f"Утверждение вакансии #{vacancy_id} ({track_name})",
+            description=f"Требуется утвердить вакансию для трека '{track_name}', созданную нанимающим менеджером {hiring_manager_name}.",
+            context={
+                "vacancy_id": vacancy_id,
+                "track_name": track_name,
+                "hiring_manager_name": hiring_manager_name,
+                "vacancy_description": vacancy_description,
+            },
+            status=TaskStatus.POOL,
+            assigned_to=None,
+        )
+        db.add(task)
         await db.commit()
         await db.refresh(task)
         return task

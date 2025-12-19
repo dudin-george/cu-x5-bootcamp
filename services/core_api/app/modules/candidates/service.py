@@ -24,17 +24,30 @@ class CandidateService:
 
         Args:
             db: Database session.
-            candidate_data: Candidate creation data.
+            candidate_data: Candidate creation data from Telegram bot + AI parser.
 
         Returns:
             Candidate: Created candidate.
         """
         candidate = Candidate(
             telegram_id=candidate_data.telegram_id,
-            full_name=candidate_data.full_name,
+            username=candidate_data.username,
+            surname=candidate_data.surname,
+            name=candidate_data.name,
             phone=candidate_data.phone,
-            location=candidate_data.location,
-            preferred_tracks=candidate_data.preferred_tracks,
+            email=candidate_data.email,
+            resume_link=candidate_data.resume_link,
+            priority1=candidate_data.priority1,
+            priority2=candidate_data.priority2,
+            course=candidate_data.course,
+            university=candidate_data.university,
+            specialty=candidate_data.specialty,
+            employment_hours=candidate_data.employment_hours,
+            city=candidate_data.city,
+            source=candidate_data.source,
+            birth_year=candidate_data.birth_year,
+            citizenship=candidate_data.citizenship,
+            tech_stack=candidate_data.tech_stack,
         )
         db.add(candidate)
         await db.commit()

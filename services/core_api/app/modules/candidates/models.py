@@ -36,10 +36,22 @@ class Candidate(Base):
         comment="Telegram user ID"
     )
 
-    full_name: Mapped[str] = mapped_column(
+    username: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Telegram username"
+    )
+
+    surname: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        comment="Полное имя кандидата"
+        comment="Фамилия кандидата"
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        comment="Имя кандидата"
     )
 
     phone: Mapped[str | None] = mapped_column(
@@ -48,17 +60,34 @@ class Candidate(Base):
         comment="Номер телефона"
     )
 
-    location: Mapped[str | None] = mapped_column(
+    email: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
-        comment="Местоположение (город, страна)"
+        comment="Email адрес"
     )
 
-    preferred_tracks: Mapped[list[int]] = mapped_column(
-        JSONB,
-        default=list,
-        nullable=False,
-        comment="Список ID треков в порядке приоритета"
+    resume_link: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="Ссылка на резюме (PDF)"
+    )
+
+    priority1: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Первый приоритет трека (название)"
+    )
+
+    priority2: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Второй приоритет трека (название)"
+    )
+
+    course: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Курс обучения (например '4 курс')"
     )
 
     university: Mapped[str | None] = mapped_column(
@@ -67,24 +96,46 @@ class Candidate(Base):
         comment="Название университета"
     )
 
-    course: Mapped[int | None] = mapped_column(
-        Integer,
+    specialty: Mapped[str | None] = mapped_column(
+        String(255),
         nullable=True,
-        comment="Курс обучения (1-6)"
+        comment="Специальность"
     )
 
-    achievements: Mapped[list[str]] = mapped_column(
-        JSONB,
-        default=list,
-        nullable=False,
-        comment="Достижения кандидата (олимпиады, проекты, etc.)"
+    employment_hours: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Количество часов для работы"
     )
 
-    domains: Mapped[list[str]] = mapped_column(
-        JSONB,
-        default=list,
-        nullable=False,
-        comment="Области интересов/доменов (ML, Web, Mobile, etc.)"
+    city: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Город"
+    )
+
+    source: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Источник (откуда узнал о стажировке)"
+    )
+
+    birth_year: Mapped[str | None] = mapped_column(
+        String(10),
+        nullable=True,
+        comment="Год рождения"
+    )
+
+    citizenship: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Гражданство"
+    )
+
+    tech_stack: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="Технологический стек"
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -115,4 +166,4 @@ class Candidate(Base):
         Returns:
             str: Candidate representation.
         """
-        return f"<Candidate(id={self.id}, full_name={self.full_name})>"
+        return f"<Candidate(id={self.id}, surname={self.surname}, name={self.name})>"
