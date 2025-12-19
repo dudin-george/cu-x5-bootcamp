@@ -1,0 +1,118 @@
+.user-menu {
+  position: relative;
+}
+
+.user-menu__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-menu__button:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+.user-menu__button:focus {
+  outline: none;
+  border-color: var(--x5-green);
+  box-shadow: 0 0 0 2px rgba(0, 168, 89, 0.2);
+}
+
+.user-menu__button--loading {
+  cursor: default;
+}
+
+.user-menu__icon {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.user-menu__initials {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--x5-green);
+  letter-spacing: 0.02em;
+}
+
+.user-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdown-appear 0.15s ease;
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-menu__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+}
+
+.user-menu__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-menu__email {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.user-menu__divider {
+  height: 1px;
+  background: var(--border-default);
+}
+
+.user-menu__logout {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-menu__logout:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-red);
+}
+
+.user-menu__logout:focus {
+  outline: none;
+  background: var(--bg-card-hover);
+}
+

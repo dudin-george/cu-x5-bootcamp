@@ -12,6 +12,16 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app: recruiter-web
 {{- end }}
 
+{{/*
+Image with support for local override of tag.
+If .Values.image.tag is set, use it. Otherwise fallback to global.image.tag.
+*/}}
 {{- define "recruiter-web.image" -}}
-{{ .Values.global.image.registry }}/recruiter-web:{{ .Values.global.image.tag }}
+{{- $tag := .Values.global.image.tag -}}
+{{- if .Values.image -}}
+{{- if .Values.image.tag -}}
+{{- $tag = .Values.image.tag -}}
+{{- end -}}
+{{- end -}}
+{{ .Values.global.image.registry }}/recruiter-web:{{ $tag }}
 {{- end }}

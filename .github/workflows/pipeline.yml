@@ -40,14 +40,14 @@ jobs:
         run: |
           cd services/recruiter_web
           npm ci || npm install
-          npm run lint || true
+          npm run lint
 
       - name: Lint Helm
         run: |
           helm dependency update infra/helm/charts/app
           helm lint infra/helm/charts/app
 
-  # ============ BUILD ============
+  # ============ BUILD BACKEND SERVICES ============
   build:
     name: Build ${{ matrix.service }}
     needs: lint
@@ -67,8 +67,6 @@ jobs:
             context: services/hm_bot
           - service: worker
             context: services/worker
-          - service: recruiter-web
-            context: services/recruiter_web
     steps:
       - uses: actions/checkout@v4
 
@@ -99,10 +97,92 @@ jobs:
               --cache-to type=gha,mode=max \
               ${{ matrix.context }}
 
+  # ============ BUILD FRONTEND (DEV) ============
+  build-frontend-dev:
+    name: Build Frontend (DEV)
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push (DEV)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: |
+            docker buildx build \
+              --push \
+              --build-arg VITE_ENVIRONMENT=dev \
+              --build-arg VITE_API_URL=/api \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:${{ github.sha }} \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:latest \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              services/recruiter_web
+
+  # ============ BUILD FRONTEND (PROD) ============
+  build-frontend-prod:
+    name: Build Frontend (PROD)
+    needs: lint
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push (PROD)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: |
+            docker buildx build \
+              --push \
+              --build-arg VITE_ENVIRONMENT=prod \
+              --build-arg VITE_ORY_SDK_URL=https://infallible-shaw-gpsjwuc0lg.projects.oryapis.com \
+              --build-arg VITE_API_URL=/api \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:${{ github.sha }}-prod \
+              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:latest-prod \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              services/recruiter_web
+
   # ============ DEPLOY DEV ============
   deploy-dev:
     name: Deploy DEV
-    needs: build
+    needs: [build, build-frontend-dev]
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -146,7 +226,7 @@ jobs:
   # ============ DEPLOY PROD ============
   deploy-prod:
     name: Deploy PROD
-    needs: build
+    needs: [build, build-frontend-prod]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: prod
@@ -175,7 +255,8 @@ jobs:
           helm upgrade --install x5-app infra/helm/charts/app \
             --namespace prod --create-namespace \
             -f infra/helm/charts/app/values-prod.yaml \
-            --set global.image.tag=${{ github.sha }} \
+            --set global.image.tag=${{ github.sha }}-prod \
+            --set recruiter-web.image.tag=${{ github.sha }}-prod \
             --set core-api.secrets.databaseUrl="${{ secrets.DATABASE_URL }}" \
             --set candidate-bot.secrets.telegramBotToken="${{ secrets.TELEGRAM_BOT_TOKEN_CANDIDATE }}" \
             --set candidate-bot.secrets.webhookSecret="${{ secrets.WEBHOOK_SECRET_CANDIDATE }}" \
@@ -187,4 +268,3 @@ jobs:
         run: |
           kubectl get pods -n prod
           kubectl get ingress -n prod
-
