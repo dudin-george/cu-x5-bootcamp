@@ -13,13 +13,13 @@ interface ColumnProps {
  */
 function getColumnAccentColor(status: TaskStatus): string {
   switch (status) {
-    case 'backlog':
+    case 'BACKLOG':
       return 'var(--accent-amber)';
-    case 'in_progress':
+    case 'IN_PROGRESS':
       return 'var(--accent-blue)';
-    case 'done':
+    case 'COMPLETED':
       return 'var(--x5-green)';
-    case 'rejected':
+    case 'REJECTED':
       return 'var(--accent-red)';
     default:
       return 'var(--text-muted)';

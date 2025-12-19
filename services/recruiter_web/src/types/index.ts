@@ -1,12 +1,12 @@
 /**
  * Статусы задач рекрутера в канбан-доске.
  * 
- * - backlog: общий пул задач, видимый всем рекрутерам
- * - in_progress: задача взята в работу конкретным рекрутером
- * - done: задача успешно выполнена
- * - rejected: задача отклонена
+ * - BACKLOG: общий пул задач, видимый всем рекрутерам
+ * - IN_PROGRESS: задача взята в работу конкретным рекрутером
+ * - COMPLETED: задача успешно выполнена
+ * - REJECTED: задача отклонена
  */
-export type TaskStatus = 'backlog' | 'in_progress' | 'done' | 'rejected';
+export type TaskStatus = 'BACKLOG' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
 
 /**
  * Задача рекрутера.
@@ -18,14 +18,23 @@ export interface Task {
   /** Уникальный идентификатор задачи (UUID) */
   id: string;
   
+  /** Название типа задачи */
+  task_type_name: string;
+  
+  /** Заголовок задачи */
+  title: string;
+  
   /** Описание задачи */
-  description: string;
+  description: string | null;
   
   /** Текущий статус задачи */
   status: TaskStatus;
   
-  /** Дата и время создания задачи (ISO 8601) */
-  createdAt: string;
+  /** Контекст задачи */
+  context: Record<string, unknown>;
+  
+  /** Дата и время создания задачи (ISO 8601) — опционально, скоро появится */
+  created_at?: string;
 }
 
 /**

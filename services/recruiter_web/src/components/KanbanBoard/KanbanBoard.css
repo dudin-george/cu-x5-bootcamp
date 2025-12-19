@@ -24,30 +24,44 @@
   align-items: center;
   gap: 16px;
   text-align: center;
-}
-
-.kanban-board__error p {
-  font-size: 1rem;
-  color: var(--accent-red);
-  margin: 0;
-}
-
-.kanban-board__error button {
-  padding: 10px 20px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  font-weight: 500;
-  color: var(--text-primary);
+  padding: 40px;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
+  border-radius: 16px;
+  max-width: 400px;
+}
+
+.kanban-board__error-icon {
+  font-size: 3rem;
+}
+
+.kanban-board__error-message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.kanban-board__retry-btn {
+  padding: 12px 24px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--bg-primary);
+  background: var(--x5-green);
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.kanban-board__error button:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-hover);
+.kanban-board__retry-btn:hover {
+  background: var(--x5-green-light);
+  transform: translateY(-1px);
+}
+
+.kanban-board__retry-btn:active {
+  transform: translateY(0);
 }
 
 /* Tablet */

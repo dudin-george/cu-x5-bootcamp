@@ -1,2 +1,2 @@
-export { getTasks, updateTaskStatus } from './tasks';
+export { getTasks, updateTaskStatus, ApiError } from './tasks';
 

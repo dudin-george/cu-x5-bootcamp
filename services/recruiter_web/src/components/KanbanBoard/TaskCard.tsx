@@ -63,6 +63,9 @@ export function TaskCard({ task }: TaskCardProps) {
     transform: CSS.Translate.toString(transform),
   };
 
+  // Показываем title, а description как дополнение если есть
+  const displayText = task.description || task.title;
+
   return (
     <div
       ref={setNodeRef}
@@ -71,10 +74,13 @@ export function TaskCard({ task }: TaskCardProps) {
       {...attributes}
       {...listeners}
     >
-      <p className="task-card__description">{task.description}</p>
-      <time className="task-card__date" dateTime={task.createdAt}>
-        {formatDate(task.createdAt)}
-      </time>
+      <span className="task-card__type">{task.task_type_name}</span>
+      <p className="task-card__description">{displayText}</p>
+      {task.created_at && (
+        <time className="task-card__date" dateTime={task.created_at}>
+          {formatDate(task.created_at)}
+        </time>
+      )}
     </div>
   );
 }
@@ -83,12 +89,17 @@ export function TaskCard({ task }: TaskCardProps) {
  * Оверлей карточки при перетаскивании.
  */
 export function TaskCardOverlay({ task }: TaskCardProps) {
+  const displayText = task.description || task.title;
+
   return (
     <div className="task-card task-card--overlay">
-      <p className="task-card__description">{task.description}</p>
-      <time className="task-card__date" dateTime={task.createdAt}>
-        {formatDate(task.createdAt)}
-      </time>
+      <span className="task-card__type">{task.task_type_name}</span>
+      <p className="task-card__description">{displayText}</p>
+      {task.created_at && (
+        <time className="task-card__date" dateTime={task.created_at}>
+          {formatDate(task.created_at)}
+        </time>
+      )}
     </div>
   );
 }

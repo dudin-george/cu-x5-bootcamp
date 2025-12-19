@@ -29,6 +29,19 @@
   transform: rotate(2deg);
 }
 
+.task-card__type {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--x5-green);
+  background: rgba(0, 200, 83, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
 .task-card__description {
   font-size: 0.875rem;
   line-height: 1.5;
