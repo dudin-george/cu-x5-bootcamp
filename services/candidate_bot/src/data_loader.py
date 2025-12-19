@@ -26,12 +26,6 @@ def read_lines(filename: str) -> list[str]:
 
 
 @lru_cache(maxsize=1)
-def get_priorities() -> list[str]:
-    """Get priority options."""
-    return read_lines("priorities.txt")
-
-
-@lru_cache(maxsize=1)
 def get_courses() -> list[str]:
     """Get course options."""
     return read_lines("courses.txt")
@@ -50,7 +44,6 @@ def get_universities() -> list[str]:
 
 
 # Pre-load data on import
-PRIORITIES = get_priorities()
 COURSES = get_courses()
 SOURCES = get_sources()
 UNIVERSITIES = get_universities()

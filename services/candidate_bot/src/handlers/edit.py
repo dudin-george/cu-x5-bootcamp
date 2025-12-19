@@ -7,13 +7,14 @@ from aiogram.fsm.context import FSMContext
 
 from src.states import InternForm
 from src.keyboards import make_keyboard, REMOVE_KEYBOARD
-from src.data_loader import PRIORITIES, COURSES, UNIVERSITIES
+from src.data_loader import COURSES, UNIVERSITIES
+from src.api_client import api_client
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 
-# Field configuration: state, prompt, keyboard
+# Field configuration: state, prompt, keyboard (None = async, needs API)
 FIELD_CONFIG = {
     "surname": (InternForm.surname, "Введи новую фамилию:", None),
     "name": (InternForm.name, "Введи новое имя:", None),
@@ -24,16 +25,8 @@ FIELD_CONFIG = {
     ),
     "email": (InternForm.email, "Введи новый email:", None),
     "resume_link": (InternForm.resume_link, "Введи ссылку на резюме:", None),
-    "priority1": (
-        InternForm.priority1,
-        "Выбери первый приоритет:",
-        lambda: make_keyboard(PRIORITIES),
-    ),
-    "priority2": (
-        InternForm.priority2,
-        "Выбери второй приоритет:",
-        lambda: make_keyboard(PRIORITIES),
-    ),
+    "priority1": (InternForm.priority1, "Выбери первый приоритет:", "tracks"),
+    "priority2": (InternForm.priority2, "Выбери второй приоритет:", "tracks"),
     "course": (
         InternForm.course,
         "Укажи ступень обучения:",
@@ -74,14 +67,26 @@ async def edit_field(callback: types.CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Неизвестное поле")
         return
     
-    target_state, prompt, keyboard_fn = FIELD_CONFIG[field]
+    target_state, prompt, keyboard_source = FIELD_CONFIG[field]
     
     # Mark as editing mode
     await state.update_data(is_editing=True)
     await state.set_state(target_state)
     
-    # Get keyboard if defined
-    keyboard = keyboard_fn() if keyboard_fn else REMOVE_KEYBOARD
+    # Get keyboard
+    if keyboard_source == "tracks":
+        # Load tracks from API
+        tracks = await api_client.get_tracks(active_only=True)
+        if tracks:
+            track_names = [t.get("name", "") for t in tracks if t.get("name")]
+            await state.update_data(available_tracks=track_names)
+            keyboard = make_keyboard(track_names)
+        else:
+            keyboard = REMOVE_KEYBOARD
+    elif callable(keyboard_source):
+        keyboard = keyboard_source()
+    else:
+        keyboard = REMOVE_KEYBOARD
     
     await callback.message.answer(prompt, reply_markup=keyboard)
     await callback.answer()

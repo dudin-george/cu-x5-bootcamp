@@ -7,11 +7,20 @@ from aiogram.fsm.context import FSMContext
 
 from src.keyboards import make_keyboard, REMOVE_KEYBOARD
 from src.states import InternForm
-from src.data_loader import PRIORITIES, COURSES, UNIVERSITIES, SOURCES
+from src.data_loader import COURSES, UNIVERSITIES, SOURCES
+from src.api_client import api_client
 from src.handlers.summary import show_summary
 
 logger = logging.getLogger(__name__)
 router = Router()
+
+
+async def get_track_names() -> list[str]:
+    """Get track names from API."""
+    tracks = await api_client.get_tracks(active_only=True)
+    if tracks:
+        return [t.get("name", "") for t in tracks if t.get("name")]
+    return []
 
 
 # === Basic Info ===
@@ -106,8 +115,22 @@ async def process_resume_link(message: types.Message, state: FSMContext) -> None
         await show_summary(message, state)
         return
     
-    kb = make_keyboard(PRIORITIES)
-    await message.answer("Выбери **первый приоритет** (направление):", reply_markup=kb)
+    await ask_priority1(message, state)
+
+
+async def ask_priority1(message: types.Message, state: FSMContext) -> None:
+    """Ask for priority 1 with tracks from API."""
+    tracks = await get_track_names()
+    if not tracks:
+        await message.answer(
+            "⚠️ Не удалось загрузить направления. Напиши вручную:",
+            reply_markup=REMOVE_KEYBOARD,
+        )
+    else:
+        # Сохраняем в state для валидации
+        await state.update_data(available_tracks=tracks)
+        kb = make_keyboard(tracks)
+        await message.answer("Выбери **первый приоритет** (направление):", reply_markup=kb)
     await state.set_state(InternForm.priority1)
 
 
@@ -116,34 +139,58 @@ async def process_resume_link(message: types.Message, state: FSMContext) -> None
 @router.message(InternForm.priority1)
 async def process_priority1(message: types.Message, state: FSMContext) -> None:
     """Handle priority 1 selection."""
-    if message.text not in PRIORITIES:
-        kb = make_keyboard(PRIORITIES)
+    data = await state.get_data()
+    tracks = data.get("available_tracks", [])
+    
+    # Принимаем любой текст если треки не загрузились
+    if tracks and message.text not in tracks:
+        kb = make_keyboard(tracks)
         await message.answer("Выбери направление кнопкой.", reply_markup=kb)
         return
     
     await state.update_data(priority1=message.text)
     
-    data = await state.get_data()
     if data.get("is_editing"):
         await show_summary(message, state)
         return
     
-    kb = make_keyboard(PRIORITIES)
-    await message.answer("Выбери **второй приоритет**:", reply_markup=kb)
+    await ask_priority2(message, state)
+
+
+async def ask_priority2(message: types.Message, state: FSMContext) -> None:
+    """Ask for priority 2."""
+    data = await state.get_data()
+    tracks = data.get("available_tracks")
+    
+    # Если треки ещё не загружены - загружаем
+    if not tracks:
+        tracks = await get_track_names()
+        if tracks:
+            await state.update_data(available_tracks=tracks)
+    
+    if tracks:
+        kb = make_keyboard(tracks)
+        await message.answer("Выбери **второй приоритет**:", reply_markup=kb)
+    else:
+        await message.answer("Укажи **второй приоритет**:", reply_markup=REMOVE_KEYBOARD)
+    
     await state.set_state(InternForm.priority2)
 
 
 @router.message(InternForm.priority2)
 async def process_priority2(message: types.Message, state: FSMContext) -> None:
     """Handle priority 2 selection."""
-    if message.text not in PRIORITIES:
-        kb = make_keyboard(PRIORITIES)
+    data = await state.get_data()
+    tracks = data.get("available_tracks", [])
+    
+    # Принимаем любой текст если треки не загрузились
+    if tracks and message.text not in tracks:
+        kb = make_keyboard(tracks)
         await message.answer("Выбери направление кнопкой.", reply_markup=kb)
         return
     
     await state.update_data(priority2=message.text)
     
-    data = await state.get_data()
     if data.get("is_editing"):
         await show_summary(message, state)
         return
