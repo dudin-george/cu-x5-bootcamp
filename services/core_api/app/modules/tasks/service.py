@@ -79,7 +79,7 @@ class TaskService:
             title=data.title,
             description=data.description,
             context=data.context,
-            status=TaskStatus.POOL,  # Всегда создается в общем пуле
+            status=TaskStatus.BACKLOG,  # Всегда создается в бэклоге
             assigned_to=None,  # Изначально не назначена
         )
         db.add(task)
@@ -115,7 +115,7 @@ class TaskService:
     async def get_tasks_by_status(
         db: AsyncSession,
         status: TaskStatus,
-        recruiter_id: int | None = None,
+        recruiter_id: uuid.UUID | None = None,
     ) -> list[RecruiterTask]:
         """Get tasks by status.
 
@@ -137,7 +137,7 @@ class TaskService:
         )
 
         # Для статусов кроме POOL фильтруем по рекрутеру
-        if status != TaskStatus.POOL and recruiter_id is not None:
+        if status != TaskStatus.BACKLOG and recruiter_id is not None:
             query = query.where(RecruiterTask.assigned_to == recruiter_id)
 
         query = query.order_by(RecruiterTask.created_at.desc())
@@ -149,14 +149,14 @@ class TaskService:
     async def assign_task_to_recruiter(
         db: AsyncSession,
         task: RecruiterTask,
-        recruiter_id: int,
+        recruiter_id: uuid.UUID,
     ) -> RecruiterTask:
-        """Assign task to recruiter (POOL -> IN_PROGRESS).
+        """Assign task to recruiter (BACKLOG -> IN_PROGRESS).
 
         Args:
             db: Database session.
             task: Task to assign.
-            recruiter_id: Recruiter ID.
+            recruiter_id: Recruiter ID (Ory identity UUID).
 
         Returns:
             RecruiterTask: Updated task.
@@ -284,10 +284,73 @@ class TaskService:
                 "hiring_manager_name": hiring_manager_name,
                 "vacancy_description": vacancy_description,
             },
-            status=TaskStatus.POOL,
+            status=TaskStatus.BACKLOG,
             assigned_to=None,
         )
         db.add(task)
+        await db.commit()
+        await db.refresh(task)
+        return task
+
+    @staticmethod
+    async def update_task_status(
+        db: AsyncSession,
+        task: RecruiterTask,
+        new_status: TaskStatus,
+        recruiter_id: uuid.UUID,
+    ) -> RecruiterTask:
+        """Update task status (PATCH endpoint logic).
+
+        Rules:
+        - If new_status != BACKLOG: assign task to recruiter
+        - If new_status == BACKLOG: unassign task (assigned_to = None)
+        - If task is vacancy_approval and new_status is COMPLETED: activate vacancy
+        - If task is vacancy_approval and new_status is REJECTED: abort vacancy
+
+        Args:
+            db: Database session.
+            task: Task to update.
+            new_status: New status.
+            recruiter_id: Recruiter ID from Ory session.
+
+        Returns:
+            RecruiterTask: Updated task.
+        """
+        now = datetime.now(timezone.utc)
+        task.status = new_status
+
+        # Assign/unassign logic
+        if new_status == TaskStatus.BACKLOG:
+            task.assigned_to = None
+            task.completed_at = None
+        else:
+            task.assigned_to = recruiter_id
+
+        # Set completed_at for terminal statuses
+        if new_status in (TaskStatus.COMPLETED, TaskStatus.REJECTED):
+            task.completed_at = now
+
+        # Load task_type if not already loaded
+        if not hasattr(task, "task_type") or task.task_type is None:
+            await db.refresh(task, ["task_type"])
+
+        # Handle vacancy approval automation
+        if task.task_type.code == "vacancy_approval" and "vacancy_id" in task.context:
+            from app.modules.vacancies.models import Vacancy
+            from app.shared.enums import VacancyStatus
+
+            vacancy_id = task.context["vacancy_id"]
+            vacancy_result = await db.execute(
+                select(Vacancy).where(Vacancy.id == vacancy_id)
+            )
+            vacancy = vacancy_result.scalar_one_or_none()
+
+            if vacancy:
+                if new_status == TaskStatus.COMPLETED:
+                    vacancy.status = VacancyStatus.ACTIVE
+                elif new_status == TaskStatus.REJECTED:
+                    vacancy.status = VacancyStatus.ABORTED
+
         await db.commit()
         await db.refresh(task)
         return task

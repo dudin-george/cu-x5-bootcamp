@@ -33,7 +33,7 @@ class CandidatePoolStatus(str, Enum):
 class TaskStatus(str, Enum):
     """Task status enumeration - статусы задач в канбане рекрутера."""
 
-    POOL = "POOL"  # Общий пул (не назначена)
+    BACKLOG = "BACKLOG"  # Общий бэклог (не назначена)
     IN_PROGRESS = "IN_PROGRESS"  # В работе у конкретного рекрутера
     COMPLETED = "COMPLETED"  # Выполнена
     REJECTED = "REJECTED"  # Отклонена

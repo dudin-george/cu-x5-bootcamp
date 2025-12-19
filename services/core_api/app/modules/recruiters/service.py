@@ -1,5 +1,7 @@
 """Recruiter service layer."""
 
+import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,12 +21,13 @@ class RecruiterService:
 
         Args:
             db: Database session.
-            data: Recruiter creation data.
+            data: Recruiter creation data (id is Ory identity UUID).
 
         Returns:
             Recruiter: Created recruiter.
         """
         recruiter = Recruiter(
+            id=data.id,
             full_name=data.full_name,
         )
         db.add(recruiter)
@@ -35,13 +38,13 @@ class RecruiterService:
     @staticmethod
     async def get_recruiter_by_id(
         db: AsyncSession,
-        recruiter_id: int,
+        recruiter_id: uuid.UUID,
     ) -> Recruiter | None:
         """Get recruiter by ID.
 
         Args:
             db: Database session.
-            recruiter_id: Recruiter ID.
+            recruiter_id: Recruiter ID (Ory identity UUID).
 
         Returns:
             Recruiter | None: Recruiter if found.
