@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X5 Tech — Стажировка BIG IN</title>
+  <meta name="description" content="Оплачиваемая стажировка в X5 Tech. Backend, Frontend, Data Science, DevOps и другие направления.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="container header__inner">
+        <div class="logo">
+          <span class="logo__x5">X5</span>
+          <span class="logo__divider">/</span>
+          <span class="logo__text">TECH</span>
+        </div>
+        <a href="%%TELEGRAM_BOT_URL%%" class="btn btn--outline btn--sm">
+          Подать заявку
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__badge">Оплачиваемая стажировка</div>
+        <h1 class="hero__title">
+          <span class="hero__title-line">Начни карьеру</span>
+          <span class="hero__title-line hero__title-line--accent">в X5 Tech</span>
+        </h1>
+        <p class="hero__subtitle">
+          3-6 месяцев реальной работы над продуктами, которыми пользуются миллионы людей. 
+          Менторство, развитие, оффер лучшим.
+        </p>
+        <a href="%%TELEGRAM_BOT_URL%%" class="btn btn--primary btn--lg hero__cta">
+          <svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
+          </svg>
+          Подать заявку в Telegram
+        </a>
+        <div class="hero__stats">
+          <div class="hero__stat">
+            <span class="hero__stat-value">20-40</span>
+            <span class="hero__stat-label">часов в неделю</span>
+          </div>
+          <div class="hero__stat">
+            <span class="hero__stat-value">3-6</span>
+            <span class="hero__stat-label">месяцев</span>
+          </div>
+          <div class="hero__stat">
+            <span class="hero__stat-value">100%</span>
+            <span class="hero__stat-label">удалёнка</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Directions -->
+    <section class="directions" id="directions">
+      <div class="container">
+        <h2 class="section-title">Направления</h2>
+        <div class="directions__grid directions__grid--4">
+          <div class="direction-card">
+            <div class="direction-card__icon">⚡</div>
+            <h3 class="direction-card__title">Backend</h3>
+            <p class="direction-card__desc">Высоконагруженные сервисы и API для ритейла нового поколения</p>
+          </div>
+          <div class="direction-card">
+            <div class="direction-card__icon">🎨</div>
+            <h3 class="direction-card__title">Frontend</h3>
+            <p class="direction-card__desc">Современные интерфейсы для миллионов пользователей</p>
+          </div>
+          <div class="direction-card">
+            <div class="direction-card__icon">🔧</div>
+            <h3 class="direction-card__title">Data Engineer</h3>
+            <p class="direction-card__desc">Инфраструктура данных и ETL-пайплайны масштаба X5</p>
+          </div>
+          <div class="direction-card">
+            <div class="direction-card__icon">📊</div>
+            <h3 class="direction-card__title">Full-stack Аналитик</h3>
+            <p class="direction-card__desc">Аналитика + разработка: от данных до готовых решений</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vacancies -->
+    <section class="vacancies" id="vacancies">
+      <div class="container">
+        <h2 class="section-title">Открытые вакансии</h2>
+        <div class="vacancies__list vacancies__list--4">
+          <article class="vacancy-card">
+            <div class="vacancy-card__header">
+              <span class="vacancy-card__tag">Backend</span>
+              <span class="vacancy-card__location">Удалённо</span>
+            </div>
+            <h3 class="vacancy-card__title">Backend-разработчик</h3>
+            <p class="vacancy-card__desc">
+              Разработка микросервисов на Python для платформы автоматизации HR-процессов.
+              FastAPI, PostgreSQL, Kubernetes — создавай надёжные и масштабируемые решения.
+            </p>
+            <ul class="vacancy-card__requirements">
+              <li>Python 3.10+ (asyncio, FastAPI)</li>
+              <li>SQL и работа с PostgreSQL</li>
+              <li>Понимание REST API и микросервисной архитектуры</li>
+              <li>Git, Docker — базовый уровень</li>
+            </ul>
+          </article>
+
+          <article class="vacancy-card">
+            <div class="vacancy-card__header">
+              <span class="vacancy-card__tag">Frontend</span>
+              <span class="vacancy-card__location">Удалённо</span>
+            </div>
+            <h3 class="vacancy-card__title">Frontend-разработчик</h3>
+            <p class="vacancy-card__desc">
+              Создание современных веб-интерфейсов для внутренних HR-инструментов.
+              React, TypeScript, Vite — пиши чистый код и делай отзывчивый UI.
+            </p>
+            <ul class="vacancy-card__requirements">
+              <li>React 18+ с хуками и функциональными компонентами</li>
+              <li>TypeScript на уверенном уровне</li>
+              <li>CSS/SCSS, адаптивная вёрстка</li>
+              <li>Базовое понимание REST API</li>
+            </ul>
+          </article>
+
+          <article class="vacancy-card">
+            <div class="vacancy-card__header">
+              <span class="vacancy-card__tag">Data</span>
+              <span class="vacancy-card__location">Удалённо</span>
+            </div>
+            <h3 class="vacancy-card__title">Data Engineer</h3>
+            <p class="vacancy-card__desc">
+              Построение пайплайнов данных для аналитики найма.
+              ETL-процессы, интеграции с внешними системами, оптимизация запросов.
+            </p>
+            <ul class="vacancy-card__requirements">
+              <li>Python для обработки данных</li>
+              <li>SQL на продвинутом уровне</li>
+              <li>Понимание ETL и data pipelines</li>
+              <li>Интерес к Airflow, dbt или аналогам</li>
+            </ul>
+          </article>
+
+          <article class="vacancy-card">
+            <div class="vacancy-card__header">
+              <span class="vacancy-card__tag">Analytics</span>
+              <span class="vacancy-card__location">Удалённо</span>
+            </div>
+            <h3 class="vacancy-card__title">Full-stack Аналитик</h3>
+            <p class="vacancy-card__desc">
+              Аналитика данных + разработка дашбордов и инструментов визуализации.
+              От сырых данных до готовых решений для бизнеса.
+            </p>
+            <ul class="vacancy-card__requirements">
+              <li>SQL для аналитических запросов</li>
+              <li>Python (pandas, numpy) или R</li>
+              <li>Опыт визуализации (Tableau, Superset, Metabase)</li>
+              <li>Умение презентовать результаты</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="vacancies__cta">
+          <a href="%%TELEGRAM_BOT_URL%%" class="btn btn--primary btn--lg">
+            Откликнуться на вакансию
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="benefits">
+      <div class="container">
+        <h2 class="section-title">Что мы предлагаем</h2>
+        <div class="benefits__grid">
+          <div class="benefit">
+            <div class="benefit__icon">💰</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Оплачиваемая стажировка</h3>
+              <p class="benefit__desc">Белая зарплата с первого дня</p>
+            </div>
+          </div>
+          <div class="benefit">
+            <div class="benefit__icon">👨‍🏫</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Личный ментор</h3>
+              <p class="benefit__desc">Опытный наставник на всё время стажировки</p>
+            </div>
+          </div>
+          <div class="benefit">
+            <div class="benefit__icon">🏠</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Гибкий формат</h3>
+              <p class="benefit__desc">Удалёнка, гибрид или офис — выбирай сам</p>
+            </div>
+          </div>
+          <div class="benefit">
+            <div class="benefit__icon">📈</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Карьерный рост</h3>
+              <p class="benefit__desc">Лучшие стажёры получают оффер</p>
+            </div>
+          </div>
+          <div class="benefit">
+            <div class="benefit__icon">🎓</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Обучение</h3>
+              <p class="benefit__desc">Тренинги, конференции, внутренние курсы</p>
+            </div>
+          </div>
+          <div class="benefit">
+            <div class="benefit__icon">🛒</div>
+            <div class="benefit__content">
+              <h3 class="benefit__title">Скидки X5</h3>
+              <p class="benefit__desc">Пятёрочка, Перекрёсток и другие бизнесы</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="container cta-section__inner">
+        <h2 class="cta-section__title">Готов начать?</h2>
+        <p class="cta-section__subtitle">
+          Подай заявку через Telegram — это быстро и удобно
+        </p>
+        <a href="%%TELEGRAM_BOT_URL%%" class="btn btn--primary btn--xl">
+          <svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
+          </svg>
+          Подать заявку
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__logo">
+          <span class="logo__x5">X5</span>
+          <span class="logo__divider">/</span>
+          <span class="logo__text">TECH</span>
+        </div>
+        <div class="footer__links">
+          <a href="https://www.x5.ru" target="_blank" rel="noopener">О компании</a>
+          <a href="mailto:internship@x5.tech">internship@x5.tech</a>
+        </div>
+        <div class="footer__copy">
+          © 2025 X5 Tech. Стажировка BIG IN
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

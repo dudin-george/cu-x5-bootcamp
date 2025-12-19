@@ -67,6 +67,8 @@ jobs:
             context: services/hm_bot
           - service: worker
             context: services/worker
+          - service: candidate-landing
+            context: services/candidate_landing
     steps:
       - uses: actions/checkout@v4
 

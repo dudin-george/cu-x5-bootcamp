@@ -110,3 +110,29 @@ recruiter-web:
     enabled: true
     minReplicas: 2
     maxReplicas: 5
+
+# Candidate Landing
+candidate-landing:
+  replicaCount: 2
+  config:
+    telegramBotUrl: "https://t.me/X5Team_InternBot"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+  ingress:
+    enabled: true
+    className: nginx
+    host: join.x5teamintern.ru
+    tls:
+      enabled: true
+      secretName: join-tls-prod
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod

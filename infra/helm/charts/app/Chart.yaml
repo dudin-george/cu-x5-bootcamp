@@ -21,3 +21,6 @@ dependencies:
   - name: recruiter-web
     version: "0.1.0"
     repository: "file://../recruiter-web"
+  - name: candidate-landing
+    version: "0.1.0"
+    repository: "file://../candidate-landing"
