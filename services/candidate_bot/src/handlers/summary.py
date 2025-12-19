@@ -137,23 +137,22 @@ async def submit_form(callback: types.CallbackQuery, state: FSMContext) -> None:
         candidate_id = response.get("id")
         await state.update_data(candidate_id=candidate_id)
         
+        data = await state.get_data()
+        name = data.get("name", "друг")
+        track = data.get("priority1", "твоему направлению")
+        
         # Success message with quiz button
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🚀 Начать квиз", callback_data="start_quiz")],
         ])
         
-        await callback.message.edit_text(
-            "✅ Анкета успешно отправлена!\n\n"
-            "Теперь тебе доступен квиз. Попытка только одна, "
-            "квиз длится 15 минут. Задача — ответить правильно "
-            "на максимальное количество вопросов.",
-            reply_markup=keyboard,
-        )
+        from src import texts
+        text = texts.FORM_SUBMITTED.format(name=name, track=track)
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
     else:
-        await callback.message.edit_text(
-            "❌ Ошибка при отправке анкеты.\n"
-            "Попробуй позже или обратись к организаторам."
-        )
+        from src import texts
+        await callback.message.edit_text(texts.ERROR_API)
         await state.clear()
     
     await callback.answer()

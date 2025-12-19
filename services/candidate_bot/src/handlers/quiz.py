@@ -83,10 +83,9 @@ async def start_quiz_auto(callback: types.CallbackQuery, state: FSMContext) -> N
         return
     
     # Автоматически запускаем квиз по priority1
+    from src import texts
     await callback.message.edit_text(
-        f"🚀 Запускаю квиз по направлению **{track_name}**...\n\n"
-        "⏱ 15 минут\n"
-        "❗ Попытка только одна"
+        texts.QUIZ_START.format(track=track_name)
     )
     
     # Запускаем квиз
@@ -286,36 +285,32 @@ async def handle_quiz_end(
     response: dict,
 ) -> None:
     """Handle quiz completion."""
-    message = response.get("message", "Квиз завершен!")
+    from src import texts
     
-    # Получаем результаты через API
+    # Получаем данные
     data = await state.get_data()
     candidate_id = data.get("candidate_id")
     track_id = data.get("quiz_track_id")
+    name = data.get("name", "друг")
     
-    results_text = ""
+    # Значения по умолчанию
+    total = 0
+    correct = 0
+    accuracy = 0
     
     if candidate_id:
         attempts = await api_client.get_quiz_attempts(str(candidate_id), track_id)
         if attempts and attempts.get("attempts"):
-            # Берём последнюю попытку
             last_attempt = attempts["attempts"][0]
             total = last_attempt.get("total_questions", 0)
             correct = last_attempt.get("correct_answers", 0)
-            
-            # Считаем процент сами (API возвращает score = количество правильных)
-            accuracy = (correct / total * 100) if total > 0 else 0
-            
-            results_text = (
-                f"\n\n📊 **Результаты:**\n"
-                f"✅ Правильных: {correct}/{total}\n"
-                f"📈 Точность: {accuracy:.0f}%\n"
-            )
+            accuracy = int((correct / total * 100)) if total > 0 else 0
     
-    text = (
-        f"🎉 {message}\n"
-        f"{results_text}\n"
-        "Спасибо за участие! Результаты будут учтены при отборе."
+    text = texts.QUIZ_COMPLETED.format(
+        name=name,
+        correct=correct,
+        total=total,
+        accuracy=accuracy,
     )
     
     await callback.message.edit_text(text)
