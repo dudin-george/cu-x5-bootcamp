@@ -27,7 +27,7 @@ from app.modules.quiz.service import (
     QuizSessionService,
     TrackQuizBlockService,
 )
-from app.modules.vacancies.service import VacancyService
+from app.modules.vacancies.service import TrackService
 
 router = APIRouter()
 
@@ -106,7 +106,7 @@ async def start_quiz(
         )
 
     # Get track name
-    track = await VacancyService.get_track_by_id(db, request.track_id)
+    track = await TrackService.get_track_by_id(db, request.track_id)
     if not track:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -265,7 +265,7 @@ async def get_quiz_attempts(
     # Get track names
     attempts = []
     for session in sessions:
-        track = await VacancyService.get_track_by_id(db, session.track_id)
+        track = await TrackService.get_track_by_id(db, session.track_id)
         attempts.append(
             QuizAttemptResponse(
                 session_id=session.id,
