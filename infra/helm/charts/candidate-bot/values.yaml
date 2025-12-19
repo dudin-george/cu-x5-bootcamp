@@ -8,9 +8,9 @@ config:
   webhookPath: "/tg/candidate"
 
 secrets:
-  # GitHub Secrets: TELEGRAM_BOT_TOKEN_CANDIDATE, WEBHOOK_SECRET_CANDIDATE
-  telegramBotTokenCandidate: ""
-  webhookSecretCandidate: ""
+  # Set via: --set candidate-bot.secrets.telegramBotToken=xxx
+  telegramBotToken: ""
+  webhookSecret: ""
 
 resources:
   requests:
