@@ -2,94 +2,91 @@ import type { Task, TaskStatus } from '../types';
 import { config } from '../config';
 
 /**
- * Mock данные для разработки.
- * 
- * В реальном приложении эти данные будут приходить с бэкенда.
+ * Ответ API со списком задач.
  */
-const MOCK_TASKS: Task[] = [
-  {
-    id: '1',
-    description: 'Кандидат Иванов И.И. не нашёл подходящий слот для интервью на позицию Python Developer',
-    status: 'backlog',
-    createdAt: '2024-12-19T10:30:00Z',
-  },
-  {
-    id: '2',
-    description: 'Необходимо согласовать перенос интервью с кандидатом Петрова А.С. на следующую неделю',
-    status: 'backlog',
-    createdAt: '2024-12-19T09:15:00Z',
-  },
-  {
-    id: '3',
-    description: 'Кандидат Сидоров М.В. запросил уточнение по условиям оффера',
-    status: 'backlog',
-    createdAt: '2024-12-18T16:45:00Z',
-  },
-  {
-    id: '4',
-    description: 'Проверить резюме кандидата без стандартного формата — требуется ручная оценка',
-    status: 'backlog',
-    createdAt: '2024-12-18T14:20:00Z',
-  },
-  {
-    id: '5',
-    description: 'Связаться с кандидатом Козловым Д.А. — не отвечает в боте более 3 дней',
-    status: 'in_progress',
-    createdAt: '2024-12-17T11:00:00Z',
-  },
-  {
-    id: '6',
-    description: 'Согласовать дополнительное интервью для кандидата Новикова Е.П.',
-    status: 'in_progress',
-    createdAt: '2024-12-17T09:30:00Z',
-  },
-  {
-    id: '7',
-    description: 'Успешно согласован перенос интервью для кандидата Морозовой К.Л.',
-    status: 'done',
-    createdAt: '2024-12-16T15:00:00Z',
-  },
-  {
-    id: '8',
-    description: 'Кандидат Волков Р.С. отказался от участия в процессе',
-    status: 'rejected',
-    createdAt: '2024-12-16T12:30:00Z',
-  },
-];
+interface TasksResponse {
+  tasks: Task[];
+}
 
 /**
- * Имитация задержки сети.
+ * Кастомная ошибка API с понятным сообщением.
  */
-const delay = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public isNetworkError = false
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
 /**
  * Получает список задач рекрутера.
  * 
- * В dev-окружении возвращает mock данные.
- * В prod-окружении делает запрос к API.
+ * Возвращает все задачи в BACKLOG + все задачи назначенные текущему рекрутеру.
  */
 export async function getTasks(): Promise<Task[]> {
-  // В dev-окружении используем mock данные
-  if (config.environment === 'dev') {
-    await delay(300); // Имитируем задержку сети
-    return [...MOCK_TASKS];
-  }
+  let response: Response;
 
-  const response = await fetch(`${config.apiUrl}/recruiter/tasks`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    response = await fetch(`${config.apiUrl}/tasks/`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    // Сетевая ошибка (API недоступен, нет интернета и т.д.)
+    throw new ApiError(
+      'Не удалось подключиться к серверу. Проверьте соединение или попробуйте позже.',
+      undefined,
+      true
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch tasks: ${response.status}`);
+    // HTTP ошибка
+    if (response.status === 401) {
+      throw new ApiError('Сессия истекла. Пожалуйста, войдите снова.', 401);
+    }
+    if (response.status === 403) {
+      throw new ApiError('Нет доступа к задачам.', 403);
+    }
+    if (response.status === 404) {
+      throw new ApiError('API задач недоступен. Возможно, сервер обновляется.', 404);
+    }
+    if (response.status >= 500) {
+      throw new ApiError('Ошибка сервера. Попробуйте позже.', response.status);
+    }
+    throw new ApiError(`Ошибка загрузки задач (${response.status})`, response.status);
   }
 
-  return response.json();
+  // Парсим ответ
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new ApiError('Сервер вернул некорректный ответ.');
+  }
+
+  // Валидация структуры ответа
+  if (!data || typeof data !== 'object') {
+    throw new ApiError('Сервер вернул пустой ответ.');
+  }
+
+  const tasksResponse = data as TasksResponse;
+
+  if (!Array.isArray(tasksResponse.tasks)) {
+    // Если tasks нет или не массив — возвращаем пустой массив
+    // Это нормально если бэк ещё не готов
+    console.warn('API response missing tasks array, returning empty list');
+    return [];
+  }
+
+  return tasksResponse.tasks;
 }
 
 /**
@@ -102,30 +99,41 @@ export async function updateTaskStatus(
   taskId: string,
   newStatus: TaskStatus
 ): Promise<Task> {
-  // В dev-окружении обновляем mock данные
-  if (config.environment === 'dev') {
-    await delay(200);
-    const task = MOCK_TASKS.find((t) => t.id === taskId);
-    if (!task) {
-      throw new Error(`Task not found: ${taskId}`);
-    }
-    task.status = newStatus;
-    return { ...task };
-  }
+  let response: Response;
 
-  const response = await fetch(`${config.apiUrl}/recruiter/tasks/${taskId}`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ status: newStatus }),
-  });
+  try {
+    response = await fetch(`${config.apiUrl}/tasks/${taskId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  } catch (error) {
+    throw new ApiError(
+      'Не удалось подключиться к серверу.',
+      undefined,
+      true
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(`Failed to update task: ${response.status}`);
+    if (response.status === 401) {
+      throw new ApiError('Сессия истекла.', 401);
+    }
+    if (response.status === 404) {
+      throw new ApiError('Задача не найдена.', 404);
+    }
+    if (response.status >= 500) {
+      throw new ApiError('Ошибка сервера при обновлении задачи.', response.status);
+    }
+    throw new ApiError(`Не удалось обновить задачу (${response.status})`, response.status);
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    throw new ApiError('Сервер вернул некорректный ответ после обновления.');
+  }
 }
-

@@ -11,19 +11,24 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import type { Task, TaskStatus, Column as ColumnType } from '../../types';
-import { getTasks, updateTaskStatus } from '../../api';
+import { getTasks, updateTaskStatus, ApiError } from '../../api';
 import { Column } from './Column';
 import { TaskCardOverlay } from './TaskCard';
 import './KanbanBoard.css';
+
+interface ErrorState {
+  message: string;
+  isNetworkError: boolean;
+}
 
 /**
  * Конфигурация колонок канбан-доски.
  */
 const COLUMNS: ColumnType[] = [
-  { id: 'backlog', title: 'Бэклог' },
-  { id: 'in_progress', title: 'В работе' },
-  { id: 'done', title: 'Выполнено' },
-  { id: 'rejected', title: 'Отклонено' },
+  { id: 'BACKLOG', title: 'Бэклог' },
+  { id: 'IN_PROGRESS', title: 'В работе' },
+  { id: 'COMPLETED', title: 'Выполнено' },
+  { id: 'REJECTED', title: 'Отклонено' },
 ];
 
 /**
@@ -36,7 +41,7 @@ const COLUMNS: ColumnType[] = [
 export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -49,34 +54,47 @@ export function KanbanBoard() {
   );
 
   /**
-   * Загружает задачи при монтировании.
+   * Загружает задачи.
    */
-  useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await getTasks();
-        setTasks(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load tasks');
-      } finally {
-        setIsLoading(false);
+  const loadTasks = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getTasks();
+      setTasks(data);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError({
+          message: err.message,
+          isNetworkError: err.isNetworkError,
+        });
+      } else {
+        setError({
+          message: 'Неизвестная ошибка при загрузке задач.',
+          isNetworkError: false,
+        });
       }
-    };
-
-    loadTasks();
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   /**
-   * Группирует задачи по статусам и сортирует по дате создания.
+   * Загружает задачи при монтировании.
+   */
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
+
+  /**
+   * Группирует задачи по статусам и сортирует по дате создания (когда появится).
    */
   const tasksByStatus = useMemo(() => {
     const grouped: Record<TaskStatus, Task[]> = {
-      backlog: [],
-      in_progress: [],
-      done: [],
-      rejected: [],
+      BACKLOG: [],
+      IN_PROGRESS: [],
+      COMPLETED: [],
+      REJECTED: [],
     };
 
     for (const task of tasks) {
@@ -84,10 +102,14 @@ export function KanbanBoard() {
     }
 
     // Сортируем по дате создания (старые сверху, новые снизу)
+    // Пока created_at не доступен — сохраняем порядок с сервера
     for (const status of Object.keys(grouped) as TaskStatus[]) {
-      grouped[status].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
+      grouped[status].sort((a, b) => {
+        if (a.created_at && b.created_at) {
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        }
+        return 0; // Сохраняем порядок если даты нет
+      });
     }
 
     return grouped;
@@ -169,8 +191,14 @@ export function KanbanBoard() {
     return (
       <div className="kanban-board kanban-board--error">
         <div className="kanban-board__error">
-          <p>Ошибка загрузки: {error}</p>
-          <button onClick={() => window.location.reload()}>
+          <div className="kanban-board__error-icon">
+            {error.isNetworkError ? '🔌' : '⚠️'}
+          </div>
+          <p className="kanban-board__error-message">{error.message}</p>
+          <button 
+            className="kanban-board__retry-btn"
+            onClick={loadTasks}
+          >
             Попробовать снова
           </button>
         </div>
