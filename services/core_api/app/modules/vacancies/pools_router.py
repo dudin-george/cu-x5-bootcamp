@@ -104,9 +104,9 @@ async def get_candidates_in_pool(
             notes=pool.notes,
             created_at=pool.created_at,
             updated_at=pool.updated_at,
-            candidate_full_name=candidate.full_name,
+            candidate_full_name=f"{candidate.name} {candidate.surname}",
             candidate_phone=candidate.phone,
-            candidate_location=candidate.location,
+            candidate_location=candidate.city,
         )
         for pool, candidate in results
     ]

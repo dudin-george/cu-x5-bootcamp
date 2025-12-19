@@ -104,7 +104,7 @@ class VacancyService:
             vacancy_id=vacancy.id,
             vacancy_description=vacancy.description,
             track_name=track.name,
-            hiring_manager_name=hiring_manager.full_name,
+            hiring_manager_name=f"{hiring_manager.first_name} {hiring_manager.last_name}",
         )
 
         return vacancy
