@@ -74,9 +74,9 @@ class TasksListResponse(BaseModel):
 # =============================================================================
 
 class AssignTaskRequest(BaseModel):
-    """Schema for assigning task to recruiter (pool -> in_progress)."""
+    """Schema for assigning task to recruiter (backlog -> in_progress)."""
 
-    recruiter_id: int = Field(..., description="ID рекрутера")
+    recruiter_id: uuid.UUID = Field(..., description="Ory Identity ID рекрутера")
 
 
 class CompleteTaskRequest(BaseModel):
@@ -89,3 +89,9 @@ class RejectTaskRequest(BaseModel):
     """Schema for rejecting task (optional fields for future use)."""
 
     pass  # Можно добавить поля в будущем, пока пустой
+
+
+class UpdateTaskStatusRequest(BaseModel):
+    """Schema for updating task status (PATCH endpoint)."""
+
+    status: TaskStatus = Field(..., description="Новый статус задачи")

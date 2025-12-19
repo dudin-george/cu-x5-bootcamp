@@ -1,5 +1,6 @@
 """Recruiter schemas."""
 
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -8,13 +9,14 @@ from pydantic import BaseModel, Field
 class RecruiterCreate(BaseModel):
     """Schema for creating a recruiter."""
 
+    id: uuid.UUID = Field(..., description="Ory Identity ID рекрутера")
     full_name: str = Field(..., min_length=1, max_length=200, description="ФИО рекрутера")
 
 
 class RecruiterResponse(BaseModel):
     """Schema for recruiter response."""
 
-    id: int = Field(..., description="ID рекрутера")
+    id: uuid.UUID = Field(..., description="Ory Identity ID рекрутера")
     full_name: str = Field(..., description="ФИО рекрутера")
     created_at: datetime = Field(..., description="Дата создания")
     updated_at: datetime = Field(..., description="Дата последнего обновления")

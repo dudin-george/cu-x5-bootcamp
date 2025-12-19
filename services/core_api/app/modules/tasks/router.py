@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import CurrentRecruiterId
 from app.modules.recruiters.service import RecruiterService
 from app.modules.tasks.schemas import (
     AssignTaskRequest,
@@ -14,6 +15,7 @@ from app.modules.tasks.schemas import (
     RecruiterTaskResponse,
     RejectTaskRequest,
     TasksListResponse,
+    UpdateTaskStatusRequest,
 )
 from app.modules.tasks.service import TaskService
 from app.shared.enums import TaskStatus
@@ -44,27 +46,51 @@ def format_task_response(task) -> RecruiterTaskResponse:
     "/",
     response_model=TasksListResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get tasks by status",
-    description="Получить задачи по статусу. Для POOL - все задачи в пуле, для остальных - задачи конкретного рекрутера.",
+    summary="Get all tasks for current recruiter",
+    description="Получить все задачи для текущего рекрутера: BACKLOG (все) + задачи назначенные на этого рекрутера.",
 )
 async def get_tasks(
-    task_status: TaskStatus = Query(..., description="Статус задач"),
-    recruiter_id: int | None = Query(None, description="ID рекрутера (для фильтрации IN_PROGRESS/COMPLETED/REJECTED)"),
+    recruiter_id: CurrentRecruiterId,
     db: AsyncSession = Depends(get_db),
 ) -> TasksListResponse:
-    """Get tasks by status.
+    """Get all tasks for current recruiter.
+
+    Returns all tasks in BACKLOG + all tasks assigned to current recruiter
+    (regardless of status).
 
     Args:
-        task_status: Status filter.
-        recruiter_id: Recruiter ID filter (optional, for non-POOL statuses).
+        recruiter_id: Current recruiter ID from Ory session.
         db: Database session.
 
     Returns:
         TasksListResponse: List of tasks.
     """
-    tasks = await TaskService.get_tasks_by_status(db, task_status, recruiter_id)
+    # Get all BACKLOG tasks (available to all recruiters)
+    backlog_tasks = await TaskService.get_tasks_by_status(
+        db, TaskStatus.BACKLOG, None
+    )
+
+    # Get all tasks assigned to this recruiter (IN_PROGRESS, COMPLETED, REJECTED)
+    assigned_tasks_in_progress = await TaskService.get_tasks_by_status(
+        db, TaskStatus.IN_PROGRESS, recruiter_id
+    )
+    assigned_tasks_completed = await TaskService.get_tasks_by_status(
+        db, TaskStatus.COMPLETED, recruiter_id
+    )
+    assigned_tasks_rejected = await TaskService.get_tasks_by_status(
+        db, TaskStatus.REJECTED, recruiter_id
+    )
+
+    # Combine all tasks
+    all_tasks = (
+        backlog_tasks
+        + assigned_tasks_in_progress
+        + assigned_tasks_completed
+        + assigned_tasks_rejected
+    )
+
     return TasksListResponse(
-        tasks=[format_task_response(task) for task in tasks]
+        tasks=[format_task_response(task) for task in all_tasks]
     )
 
 
@@ -127,11 +153,11 @@ async def assign_task(
             detail=f"Task {task_id} not found",
         )
 
-    # Check task is in POOL
-    if task.status != TaskStatus.POOL:
+    # Check task is in BACKLOG
+    if task.status != TaskStatus.BACKLOG:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Task must be in POOL status, currently {task.status}",
+            detail=f"Task must be in BACKLOG status, currently {task.status}",
         )
 
     # Check recruiter exists
@@ -238,6 +264,55 @@ async def reject_task(
 
     # Reject task
     task = await TaskService.reject_task(db, task)
+    # Reload with relationships
+    task = await TaskService.get_task_by_id(db, task.id)
+    return format_task_response(task)
+
+
+@router.patch(
+    "/{task_id}",
+    response_model=RecruiterTaskResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update task status",
+    description="Обновить статус задачи. Если новый статус != BACKLOG, задача назначается на текущего рекрутера. Если BACKLOG - задача освобождается.",
+)
+async def update_task_status(
+    task_id: uuid.UUID,
+    request: UpdateTaskStatusRequest,
+    recruiter_id: CurrentRecruiterId,
+    db: AsyncSession = Depends(get_db),
+) -> RecruiterTaskResponse:
+    """Update task status.
+
+    Logic:
+    - If new_status != BACKLOG: assign task to current recruiter
+    - If new_status == BACKLOG: unassign task (assigned_to = None)
+    - If task is vacancy_approval and new_status is COMPLETED: activate vacancy
+    - If task is vacancy_approval and new_status is REJECTED: abort vacancy
+
+    Args:
+        task_id: Task UUID.
+        request: Update request with new status.
+        recruiter_id: Current recruiter ID from Ory session.
+        db: Database session.
+
+    Returns:
+        RecruiterTaskResponse: Updated task.
+
+    Raises:
+        HTTPException: If task not found.
+    """
+    # Get task
+    task = await TaskService.get_task_by_id(db, task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task {task_id} not found",
+        )
+
+    # Update task status
+    task = await TaskService.update_task_status(db, task, request.status, recruiter_id)
+
     # Reload with relationships
     task = await TaskService.get_task_by_id(db, task.id)
     return format_task_response(task)

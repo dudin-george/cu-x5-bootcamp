@@ -109,18 +109,19 @@ class RecruiterTask(Base):
     # Статус (колонка в канбане)
     status: Mapped[TaskStatus] = mapped_column(
         Enum(TaskStatus, name="task_status", create_type=True),
-        default=TaskStatus.POOL,
+        default=TaskStatus.BACKLOG,
         nullable=False,
         index=True,
-        comment="Статус задачи: POOL, IN_PROGRESS, COMPLETED, REJECTED",
+        comment="Статус задачи: BACKLOG, IN_PROGRESS, COMPLETED, REJECTED",
     )
 
-    # Назначение рекрутеру (None = в общем пуле)
-    assigned_to: Mapped[int | None] = mapped_column(
+    # Назначение рекрутеру (None = в бэклоге)
+    assigned_to: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("recruiters.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
-        comment="ID рекрутера, которому назначена задача (NULL = общий пул)",
+        comment="Ory Identity ID рекрутера, которому назначена задача (NULL = backlog)",
     )
 
     # Контекст задачи (гибкое JSONB поле)

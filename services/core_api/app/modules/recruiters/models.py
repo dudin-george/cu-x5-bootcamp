@@ -1,9 +1,11 @@
 """Recruiter models."""
 
+import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, String
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -17,10 +19,10 @@ class Recruiter(Base):
 
     __tablename__ = "recruiters"
 
-    id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
-        comment="Уникальный ID рекрутера",
+        comment="Ory Identity ID рекрутера",
     )
 
     full_name: Mapped[str] = mapped_column(
