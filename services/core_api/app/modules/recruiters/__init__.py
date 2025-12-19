@@ -1,1 +1,0 @@
-"""Recruiters module."""

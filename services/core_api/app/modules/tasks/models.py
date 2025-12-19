@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
@@ -10,9 +9,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.shared.enums import TaskStatus
-
-if TYPE_CHECKING:
-    from app.modules.recruiters.models import Recruiter
 
 
 class TaskType(Base):
@@ -116,9 +112,9 @@ class RecruiterTask(Base):
     )
 
     # Назначение рекрутеру (None = в бэклоге)
+    # Note: Не связано FK, так как рекрутеры хранятся в Ory Kratos
     assigned_to: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
-        ForeignKey("recruiters.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
         comment="Ory Identity ID рекрутера, которому назначена задача (NULL = backlog)",
@@ -171,11 +167,6 @@ class RecruiterTask(Base):
     task_type: Mapped["TaskType"] = relationship(
         "TaskType",
         back_populates="tasks",
-    )
-
-    recruiter: Mapped["Recruiter"] = relationship(
-        "Recruiter",
-        back_populates="assigned_tasks",
     )
 
     def __repr__(self) -> str:

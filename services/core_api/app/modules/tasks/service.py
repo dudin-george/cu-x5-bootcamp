@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.modules.recruiters.models import Recruiter
 from app.modules.tasks.models import RecruiterTask, TaskType
 from app.modules.tasks.schemas import RecruiterTaskCreate
 from app.shared.enums import TaskStatus
@@ -105,7 +104,6 @@ class TaskService:
             select(RecruiterTask)
             .options(
                 joinedload(RecruiterTask.task_type),
-                joinedload(RecruiterTask.recruiter),
             )
             .where(RecruiterTask.id == task_id)
         )
@@ -131,7 +129,6 @@ class TaskService:
             select(RecruiterTask)
             .options(
                 joinedload(RecruiterTask.task_type),
-                joinedload(RecruiterTask.recruiter),
             )
             .where(RecruiterTask.status == status)
         )
