@@ -104,7 +104,6 @@ class TaskService:
             select(RecruiterTask)
             .options(
                 joinedload(RecruiterTask.task_type),
-                joinedload(RecruiterTask.recruiter),
             )
             .where(RecruiterTask.id == task_id)
         )
@@ -130,7 +129,6 @@ class TaskService:
             select(RecruiterTask)
             .options(
                 joinedload(RecruiterTask.task_type),
-                joinedload(RecruiterTask.recruiter),
             )
             .where(RecruiterTask.status == status)
         )
