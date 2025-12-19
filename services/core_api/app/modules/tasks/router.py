@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import CurrentRecruiterId
-from app.modules.recruiters.service import RecruiterService
 from app.modules.tasks.schemas import (
     AssignTaskRequest,
     CompleteTaskRequest,
@@ -143,7 +142,7 @@ async def assign_task(
         RecruiterTaskResponse: Updated task.
 
     Raises:
-        HTTPException: If task not found, not in POOL, or recruiter not found.
+        HTTPException: If task not found or not in BACKLOG.
     """
     # Get task
     task = await TaskService.get_task_by_id(db, task_id)
@@ -160,15 +159,7 @@ async def assign_task(
             detail=f"Task must be in BACKLOG status, currently {task.status}",
         )
 
-    # Check recruiter exists
-    recruiter = await RecruiterService.get_recruiter_by_id(db, request.recruiter_id)
-    if not recruiter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Recruiter {request.recruiter_id} not found",
-        )
-
-    # Assign task
+    # Assign task (recruiter_id validated by Ory session)
     task = await TaskService.assign_task_to_recruiter(db, task, request.recruiter_id)
     # Reload with relationships
     task = await TaskService.get_task_by_id(db, task.id)
