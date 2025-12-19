@@ -84,35 +84,35 @@ async def get_candidate(
     return CandidateResponse.model_validate(candidate)
 
 
-# @router.get(
-#     "/telegram/{telegram_id}",
-#     response_model=CandidateResponse,
-#     summary="Get candidate by Telegram ID",
-#     description="Get candidate profile by Telegram user ID.",
-# )
-# async def get_candidate_by_telegram(
-#     telegram_id: int,
-#     db: AsyncSession = Depends(get_db),
-# ) -> CandidateResponse:
-#     """Get candidate by Telegram ID.
-#
-#     Args:
-#         telegram_id: Telegram user ID.
-#         db: Database session.
-#
-#     Returns:
-#         CandidateResponse: Candidate profile.
-#
-#     Raises:
-#         HTTPException: If candidate not found.
-#     """
-#     candidate = await CandidateService.get_candidate_by_telegram_id(db, telegram_id)
-#     if not candidate:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Candidate with telegram_id {telegram_id} not found",
-#         )
-#     return CandidateResponse.model_validate(candidate)
+@router.get(
+    "/telegram/{telegram_id}",
+    response_model=CandidateResponse,
+    summary="Get candidate by Telegram ID",
+    description="Get candidate profile by Telegram user ID.",
+)
+async def get_candidate_by_telegram(
+    telegram_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> CandidateResponse:
+    """Get candidate by Telegram ID.
+
+    Args:
+        telegram_id: Telegram user ID.
+        db: Database session.
+
+    Returns:
+        CandidateResponse: Candidate profile.
+
+    Raises:
+        HTTPException: If candidate not found.
+    """
+    candidate = await CandidateService.get_candidate_by_telegram_id(db, telegram_id)
+    if not candidate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Candidate with telegram_id {telegram_id} not found",
+        )
+    return CandidateResponse.model_validate(candidate)
 
 
 @router.get(

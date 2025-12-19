@@ -4,10 +4,13 @@ config:
   environment: dev
   logLevel: INFO
   port: 8000
+  apiBaseUrl: "http://core-api:8000"
+  webhookPath: "/tg/candidate"
 
 secrets:
-  telegramBotToken: ""
-  webhookSecret: ""
+  # GitHub Secrets: TELEGRAM_BOT_TOKEN_CANDIDATE, WEBHOOK_SECRET_CANDIDATE
+  telegramBotTokenCandidate: ""
+  webhookSecretCandidate: ""
 
 resources:
   requests:

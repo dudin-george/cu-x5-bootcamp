@@ -1,84 +1,112 @@
-"""Candidate Telegram Bot service for X5 Hiring Bootcamp."""
+"""Candidate Bot - FastAPI webhook server for Kubernetes."""
 
 import logging
-import os
-from typing import Any
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from aiogram import types
+from aiogram.types import Update
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 
-# Configuration from environment
-ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
-PORT = int(os.getenv("PORT", "8000"))
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+from src.config import config
+from src.bot import bot, dp, setup_handlers
 
 # Configure logging
-logging.basicConfig(level=getattr(logging, LOG_LEVEL))
+logging.basicConfig(
+    level=getattr(logging, config.log_level),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan handler."""
+    # Startup
+    logger.info(f"Starting Candidate Bot [{config.environment}]")
+    setup_handlers()
+    
+    # Set webhook if in production
+    if config.environment != "dev" and config.bot_token:
+        # Webhook will be set externally or via init container
+        logger.info(f"Webhook path: {config.webhook_url}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down Candidate Bot")
+    await bot.session.close()
+
+
 app = FastAPI(
-    title="X5 Hiring Candidate Bot",
+    title="X5 Candidate Bot",
     description="Telegram bot for candidates",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 
-class HealthResponse(BaseModel):
-    ok: bool
+@app.get("/healthz")
+async def healthz() -> dict:
+    """Health check endpoint for Kubernetes."""
+    return {"ok": True}
 
 
-class WebhookResponse(BaseModel):
-    ok: bool
-    message: str | None = None
+@app.get("/readyz")
+async def readyz() -> dict:
+    """Readiness check endpoint for Kubernetes."""
+    # Could add more checks here (e.g., API connectivity)
+    return {"ok": True}
 
 
-@app.get("/healthz", response_model=HealthResponse, tags=["health"])
-async def healthz() -> HealthResponse:
-    """Health check endpoint."""
-    return HealthResponse(ok=True)
-
-
-@app.post("/tg/candidate/{secret}", response_model=WebhookResponse, tags=["webhook"])
-async def telegram_webhook(secret: str, request: Request) -> WebhookResponse:
-    """
-    Telegram webhook endpoint for candidate bot.
-    
-    The secret in the URL must match WEBHOOK_SECRET environment variable.
-    """
-    # Verify webhook secret
-    if secret != WEBHOOK_SECRET:
-        logger.warning(f"Invalid webhook secret received")
-        raise HTTPException(status_code=403, detail="Invalid webhook secret")
-    
-    # Parse webhook data
-    try:
-        body: dict[str, Any] = await request.json()
-        logger.info(f"Received webhook: {body.get('update_id', 'unknown')}")
-        
-        # TODO: Process Telegram update here
-        # For now, just acknowledge receipt
-        
-    except Exception as e:
-        logger.error(f"Error processing webhook: {e}")
-        raise HTTPException(status_code=400, detail="Invalid request body")
-    
-    return WebhookResponse(ok=True, message="Webhook received")
-
-
-@app.get("/", tags=["root"])
+@app.get("/")
 async def root() -> dict:
     """Root endpoint."""
     return {
         "service": "candidate-bot",
-        "environment": ENVIRONMENT,
+        "environment": config.environment,
         "status": "running",
     }
 
 
+@app.post(f"{config.webhook_path}/{{secret}}")
+async def telegram_webhook(secret: str, request: Request) -> JSONResponse:
+    """Telegram webhook endpoint.
+    
+    URL format: /tg/candidate/{secret}
+    The secret must match WEBHOOK_SECRET environment variable.
+    """
+    # Verify secret
+    if secret != config.webhook_secret:
+        logger.warning("Invalid webhook secret received")
+        raise HTTPException(status_code=403, detail="Invalid webhook secret")
+    
+    # Parse update
+    try:
+        body = await request.json()
+        update = Update.model_validate(body, context={"bot": bot})
+        
+        logger.debug(f"Received update: {update.update_id}")
+        
+        # Process update
+        await dp.feed_update(bot, update)
+        
+    except Exception as e:
+        logger.exception(f"Error processing webhook: {e}")
+        # Return 200 anyway to prevent Telegram from retrying
+        return JSONResponse({"ok": False, "error": str(e)})
+    
+    return JSONResponse({"ok": True})
+
+
+# For local development with polling
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
-
+    import asyncio
+    
+    async def main():
+        """Run bot in polling mode for local development."""
+        logger.info("Running in polling mode (dev)")
+        setup_handlers()
+        await dp.start_polling(bot)
+    
+    asyncio.run(main())
