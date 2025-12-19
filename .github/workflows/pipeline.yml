@@ -171,7 +171,7 @@ jobs:
             docker buildx build \
               --push \
               --build-arg VITE_ENVIRONMENT=prod \
-              --build-arg VITE_ORY_SDK_URL=https://infallible-shaw-gpsjwuc0lg.projects.oryapis.com \
+              --build-arg VITE_ORY_SDK_URL=https://auth.x5teamintern.ru \
               --build-arg VITE_API_URL=/api \
               --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:${{ github.sha }}-prod \
               --tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/recruiter-web:latest-prod \
