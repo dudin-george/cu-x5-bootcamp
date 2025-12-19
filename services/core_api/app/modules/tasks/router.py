@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 def format_task_response(task) -> RecruiterTaskResponse:
-    """Format task for response.
+    """Format task for response (simplified for kanban cards).
 
     Args:
         task: RecruiterTask model.
@@ -32,18 +32,11 @@ def format_task_response(task) -> RecruiterTaskResponse:
     """
     return RecruiterTaskResponse(
         id=task.id,
-        task_type_id=task.task_type_id,
-        task_type_code=task.task_type.code,
         task_type_name=task.task_type.name,
         status=task.status,
-        assigned_to=task.assigned_to,
-        recruiter_name=task.recruiter.full_name if task.recruiter else None,
         title=task.title,
         description=task.description,
         context=task.context,
-        created_at=task.created_at,
-        updated_at=task.updated_at,
-        completed_at=task.completed_at,
     )
 
 
