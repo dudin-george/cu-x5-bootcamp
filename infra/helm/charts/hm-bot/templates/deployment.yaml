@@ -29,6 +29,12 @@ spec:
               value: {{ .Values.config.logLevel | quote }}
             - name: PORT
               value: {{ .Values.config.port | quote }}
+            - name: API_BASE_URL
+              value: {{ .Values.config.apiBaseUrl | quote }}
+            - name: WEBHOOK_PATH
+              value: {{ .Values.config.webhookPath | quote }}
+            - name: WEBHOOK_BASE_URL
+              value: {{ .Values.config.webhookBaseUrl | quote }}
             - name: TELEGRAM_BOT_TOKEN
               valueFrom:
                 secretKeyRef:

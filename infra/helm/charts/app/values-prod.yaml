@@ -64,6 +64,7 @@ hm-bot:
   config:
     environment: prod
     logLevel: INFO
+    webhookBaseUrl: "https://x5teamintern.ru"
   secrets:
     telegramBotToken: ""
     webhookSecret: ""
