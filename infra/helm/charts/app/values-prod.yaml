@@ -38,7 +38,7 @@ core-api:
 
 # Candidate Bot
 candidate-bot:
-  replicaCount: 2
+  replicaCount: 1
   config:
     environment: prod
     logLevel: INFO
@@ -55,12 +55,12 @@ candidate-bot:
       memory: 512Mi
   hpa:
     enabled: true
-    minReplicas: 2
+    minReplicas: 1
     maxReplicas: 5
 
 # HM Bot
 hm-bot:
-  replicaCount: 2
+  replicaCount: 1
   config:
     environment: prod
     logLevel: INFO
@@ -77,7 +77,7 @@ hm-bot:
       memory: 512Mi
   hpa:
     enabled: true
-    minReplicas: 2
+    minReplicas: 1
     maxReplicas: 5
 
 # Worker
