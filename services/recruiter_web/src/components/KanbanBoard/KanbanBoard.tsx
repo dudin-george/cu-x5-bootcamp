@@ -2,16 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
-  type DragOverEvent,
 } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { Task, TaskStatus, Column as ColumnType } from '../../types';
 import { getTasks, updateTaskStatus } from '../../api';
 import { Column } from './Column';
@@ -33,6 +31,7 @@ const COLUMNS: ColumnType[] = [
  * 
  * Отображает 4 колонки с задачами.
  * Поддерживает drag & drop для перемещения задач между колонками.
+ * Порядок карточек определяется датой создания (новые сверху).
  */
 export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -46,9 +45,7 @@ export function KanbanBoard() {
         distance: 8,
       },
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor)
   );
 
   /**
@@ -72,7 +69,7 @@ export function KanbanBoard() {
   }, []);
 
   /**
-   * Группирует задачи по статусам.
+   * Группирует задачи по статусам и сортирует по дате создания.
    */
   const tasksByStatus = useMemo(() => {
     const grouped: Record<TaskStatus, Task[]> = {
@@ -108,38 +105,6 @@ export function KanbanBoard() {
   }, [tasks]);
 
   /**
-   * Обработчик перемещения над зоной.
-   */
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    // Находим статус целевой колонки
-    const overColumn = COLUMNS.find((col) => col.id === overId);
-    const overTask = tasks.find((t) => t.id === overId);
-    
-    let newStatus: TaskStatus | null = null;
-    
-    if (overColumn) {
-      newStatus = overColumn.id;
-    } else if (overTask) {
-      newStatus = overTask.status;
-    }
-
-    if (!newStatus) return;
-
-    // Обновляем статус задачи в локальном состоянии
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === activeId ? { ...task, status: newStatus } : task
-      )
-    );
-  }, [tasks]);
-
-  /**
    * Обработчик завершения перетаскивания.
    */
   const handleDragEnd = useCallback(
@@ -150,13 +115,31 @@ export function KanbanBoard() {
       if (!over) return;
 
       const activeId = active.id as string;
-      const task = tasks.find((t) => t.id === activeId);
+      const overId = over.id as string;
 
+      // Находим задачу
+      const task = tasks.find((t) => t.id === activeId);
       if (!task) return;
+
+      // Определяем целевую колонку
+      const targetColumn = COLUMNS.find((col) => col.id === overId);
+      if (!targetColumn) return;
+
+      // Если статус не изменился — ничего не делаем
+      if (task.status === targetColumn.id) return;
+
+      const newStatus = targetColumn.id;
+
+      // Обновляем локально
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === activeId ? { ...t, status: newStatus } : t
+        )
+      );
 
       // Сохраняем на сервере
       try {
-        await updateTaskStatus(activeId, task.status);
+        await updateTaskStatus(activeId, newStatus);
       } catch (err) {
         // При ошибке перезагружаем задачи
         console.error('Failed to update task status:', err);
@@ -198,9 +181,8 @@ export function KanbanBoard() {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -220,4 +202,3 @@ export function KanbanBoard() {
     </DndContext>
   );
 }
-

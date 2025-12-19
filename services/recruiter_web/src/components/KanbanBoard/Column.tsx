@@ -1,8 +1,4 @@
 import { useDroppable } from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
 import type { Task, TaskStatus, Column as ColumnType } from '../../types';
 import { TaskCard } from './TaskCard';
 import './Column.css';
@@ -35,6 +31,7 @@ function getColumnAccentColor(status: TaskStatus): string {
  * 
  * Содержит заголовок, счётчик задач и список карточек.
  * Является droppable зоной для перетаскивания карточек.
+ * Карточки отсортированы по дате создания (новые сверху).
  */
 export function Column({ column, tasks }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -45,7 +42,6 @@ export function Column({ column, tasks }: ColumnProps) {
     },
   });
 
-  const taskIds = tasks.map((task) => task.id);
   const accentColor = getColumnAccentColor(column.id);
 
   return (
@@ -62,19 +58,16 @@ export function Column({ column, tasks }: ColumnProps) {
       </div>
 
       <div ref={setNodeRef} className="column__content">
-        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          {tasks.length === 0 ? (
-            <div className="column__empty">
-              Нет задач
-            </div>
-          ) : (
-            tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))
-          )}
-        </SortableContext>
+        {tasks.length === 0 ? (
+          <div className="column__empty">
+            Нет задач
+          </div>
+        ) : (
+          tasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))
+        )}
       </div>
     </div>
   );
 }
-

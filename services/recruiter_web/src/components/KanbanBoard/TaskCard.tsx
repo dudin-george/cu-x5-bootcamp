@@ -1,4 +1,4 @@
-import { useSortable } from '@dnd-kit/sortable';
+import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../../types';
 import './TaskCard.css';
@@ -42,6 +42,7 @@ function formatDate(isoString: string): string {
  * Карточка задачи в канбан-доске.
  * 
  * Поддерживает drag & drop для перемещения между колонками.
+ * Порядок карточек определяется датой создания (не drag & drop).
  */
 export function TaskCard({ task }: TaskCardProps) {
   const {
@@ -49,9 +50,8 @@ export function TaskCard({ task }: TaskCardProps) {
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
-  } = useSortable({
+  } = useDraggable({
     id: task.id,
     data: {
       type: 'task',
@@ -60,8 +60,7 @@ export function TaskCard({ task }: TaskCardProps) {
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: CSS.Translate.toString(transform),
   };
 
   return (
@@ -93,4 +92,3 @@ export function TaskCardOverlay({ task }: TaskCardProps) {
     </div>
   );
 }
-
