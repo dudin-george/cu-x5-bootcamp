@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import Integer, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -480,7 +480,7 @@ class QuizAnswerService:
             select(
                 QuizBlock.name,
                 func.count(QuizAnswer.id).label("total"),
-                func.sum(func.cast(QuizAnswer.is_correct, db.bind.dialect.BIGINT)).label("correct"),
+                func.sum(func.cast(QuizAnswer.is_correct, Integer)).label("correct"),
             )
             .join(QuizQuestion, QuizAnswer.question_id == QuizQuestion.id)
             .join(QuizBlock, QuizQuestion.block_id == QuizBlock.id)
