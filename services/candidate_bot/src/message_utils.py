@@ -3,47 +3,39 @@
 import logging
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 logger = logging.getLogger(__name__)
 
 
-async def reply_clean(
-    message: types.Message,
-    state: FSMContext,
-    text: str,
-    reply_markup: ReplyKeyboardMarkup | ReplyKeyboardRemove | None = None,
-) -> types.Message:
-    """Send reply, deleting user message and previous bot message.
-    
-    1. Delete user's message (their input)
-    2. Delete previous bot message (stored in state)
-    3. Send new message
-    4. Save new message id in state
-    """
-    bot: Bot = message.bot
-    chat_id = message.chat.id
-    
-    # 1. Delete user's message
-    try:
-        await message.delete()
-    except Exception as e:
-        logger.debug(f"Cannot delete user message: {e}")
-    
-    # 2. Delete previous bot message
+async def track_message(state: FSMContext, message_id: int) -> None:
+    """Track message ID for later deletion."""
     data = await state.get_data()
-    prev_msg_id = data.get("last_bot_message_id")
-    if prev_msg_id:
+    message_ids = data.get("tracked_message_ids", [])
+    message_ids.append(message_id)
+    await state.update_data(tracked_message_ids=message_ids)
+
+
+async def track_bot_message(message: types.Message, state: FSMContext) -> None:
+    """Track bot's sent message."""
+    await track_message(state, message.message_id)
+
+
+async def track_user_message(message: types.Message, state: FSMContext) -> None:
+    """Track user's message."""
+    await track_message(state, message.message_id)
+
+
+async def clear_chat_history(bot: Bot, chat_id: int, state: FSMContext) -> None:
+    """Delete all tracked messages from chat."""
+    data = await state.get_data()
+    message_ids = data.get("tracked_message_ids", [])
+    
+    for msg_id in message_ids:
         try:
-            await bot.delete_message(chat_id, prev_msg_id)
+            await bot.delete_message(chat_id, msg_id)
         except Exception as e:
-            logger.debug(f"Cannot delete previous bot message: {e}")
+            logger.debug(f"Cannot delete message {msg_id}: {e}")
     
-    # 3. Send new message
-    sent = await message.answer(text, reply_markup=reply_markup)
-    
-    # 4. Save message id
-    await state.update_data(last_bot_message_id=sent.message_id)
-    
-    return sent
+    # Clear tracked IDs
+    await state.update_data(tracked_message_ids=[])
 

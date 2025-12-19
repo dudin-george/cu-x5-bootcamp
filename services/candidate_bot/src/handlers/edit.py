@@ -2,13 +2,14 @@
 
 import logging
 
-from aiogram import Router, types, F, Bot
+from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 
 from src.states import InternForm
 from src.keyboards import make_keyboard, REMOVE_KEYBOARD
 from src.data_loader import COURSES, UNIVERSITIES
 from src.api_client import api_client
+from src.message_utils import track_bot_message
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -61,8 +62,6 @@ FIELD_CONFIG = {
 @router.callback_query(F.data.startswith("edit_"), InternForm.confirm)
 async def edit_field(callback: types.CallbackQuery, state: FSMContext) -> None:
     """Handle edit button click."""
-    bot: Bot = callback.bot
-    chat_id = callback.message.chat.id
     field = callback.data.removeprefix("edit_")
     
     if field not in FIELD_CONFIG:
@@ -75,15 +74,8 @@ async def edit_field(callback: types.CallbackQuery, state: FSMContext) -> None:
     await state.update_data(is_editing=True)
     await state.set_state(target_state)
     
-    # Delete previous summary message
-    try:
-        await callback.message.delete()
-    except Exception:
-        pass
-    
     # Get keyboard
     if keyboard_source == "tracks":
-        # Load tracks from API
         tracks = await api_client.get_tracks(active_only=True)
         if tracks:
             track_names = [t.get("name", "") for t in tracks if t.get("name")]
@@ -96,7 +88,7 @@ async def edit_field(callback: types.CallbackQuery, state: FSMContext) -> None:
     else:
         keyboard = REMOVE_KEYBOARD
     
-    sent = await bot.send_message(chat_id, prompt, reply_markup=keyboard)
-    await state.update_data(last_bot_message_id=sent.message_id)
+    sent = await callback.message.answer(prompt, reply_markup=keyboard)
+    await track_bot_message(sent, state)
     await callback.answer()
 

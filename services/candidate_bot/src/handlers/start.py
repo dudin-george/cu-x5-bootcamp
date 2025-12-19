@@ -9,7 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.keyboards import make_keyboard, REMOVE_KEYBOARD
 from src.states import InternForm
-from src.message_utils import reply_clean
+from src.message_utils import track_bot_message, track_user_message
 from src.api_client import api_client
 from src import texts
 
@@ -21,12 +21,6 @@ router = Router()
 async def cmd_start(message: types.Message, state: FSMContext) -> None:
     """Handle /start command."""
     await state.clear()
-    
-    # Delete /start command
-    try:
-        await message.delete()
-    except Exception:
-        pass
     
     telegram_id = message.from_user.id
     
@@ -45,7 +39,7 @@ async def cmd_start(message: types.Message, state: FSMContext) -> None:
     )
     
     sent = await message.answer(texts.WELCOME_NEW, reply_markup=kb)
-    await state.update_data(last_bot_message_id=sent.message_id)
+    await track_bot_message(sent, state)
     await state.set_state(InternForm.waiting_for_choice)
 
 
@@ -97,31 +91,26 @@ async def show_status(message: types.Message, state: FSMContext, candidate: dict
         priority1=track,
     )
     
-    sent = await message.answer(text, reply_markup=keyboard)
-    await state.update_data(last_bot_message_id=sent.message_id)
+    await message.answer(text, reply_markup=keyboard)
 
 
 @router.message(InternForm.waiting_for_choice)
 async def process_choice(message: types.Message, state: FSMContext) -> None:
     """Handle initial choice (manual or PDF)."""
+    await track_user_message(message, state)
     text = message.text
     
     if text == "📝 Заполнить вручную":
-        await reply_clean(
-            message, state,
-            texts.FORM_START,
-            reply_markup=REMOVE_KEYBOARD,
-        )
+        sent = await message.answer(texts.FORM_START, reply_markup=REMOVE_KEYBOARD)
+        await track_bot_message(sent, state)
         await state.set_state(InternForm.surname)
         
     elif text == "📄 Загрузить резюме (PDF)":
-        await reply_clean(
-            message, state,
-            texts.FORM_RESUME_UPLOAD,
-            reply_markup=REMOVE_KEYBOARD,
-        )
+        sent = await message.answer(texts.FORM_RESUME_UPLOAD, reply_markup=REMOVE_KEYBOARD)
+        await track_bot_message(sent, state)
         await state.set_state(InternForm.upload_resume)
         
     else:
-        await reply_clean(message, state, "Пожалуйста, выбери один из вариантов кнопками 👇")
+        sent = await message.answer("Пожалуйста, выбери один из вариантов кнопками 👇")
+        await track_bot_message(sent, state)
 

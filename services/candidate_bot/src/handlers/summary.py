@@ -8,54 +8,34 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.states import InternForm
 from src.api_client import api_client
+from src.message_utils import track_bot_message, clear_chat_history
 
 logger = logging.getLogger(__name__)
 router = Router()
 
 
 async def show_summary(message: types.Message, state: FSMContext) -> None:
-    """Show form summary with edit buttons.
-    
-    Args:
-        message: Message to reply to.
-        state: FSM context.
-    """
-    bot: Bot = message.bot
-    chat_id = message.chat.id
+    """Show form summary with edit buttons."""
     data = await state.get_data()
-    
-    # Delete user message
-    try:
-        await message.delete()
-    except Exception:
-        pass
-    
-    # Delete previous bot message
-    prev_msg_id = data.get("last_bot_message_id")
-    if prev_msg_id:
-        try:
-            await bot.delete_message(chat_id, prev_msg_id)
-        except Exception:
-            pass
     
     summary = (
         "📋 **Проверь свои данные:**\n\n"
-        f"1. Фамилия: {data.get('surname', '—')}\n"
-        f"2. Имя: {data.get('name', '—')}\n"
-        f"3. Телефон: {data.get('phone', '—')}\n"
-        f"4. Email: {data.get('email', '—')}\n"
-        f"5. Резюме: {data.get('resume_link', '—')}\n"
-        f"6. Приоритет 1: {data.get('priority1', '—')}\n"
-        f"7. Приоритет 2: {data.get('priority2', '—')}\n"
-        f"8. Курс: {data.get('course', '—')}\n"
-        f"9. ВУЗ: {data.get('university', '—')}\n"
-        f"10. Специальность: {data.get('specialty', '—')}\n"
-        f"11. Занятость: {data.get('employment_hours', '—')} ч/нед\n"
-        f"12. Город: {data.get('city', '—')}\n"
-        f"13. Источник: {data.get('source', '—')}\n"
-        f"14. Год рождения: {data.get('birth_year', '—')}\n"
-        f"15. Гражданство: {data.get('citizenship', '—')}\n"
-        f"16. Стек: {data.get('tech_stack', '—')}\n"
+        f"👤 Фамилия: {data.get('surname', '—')}\n"
+        f"👤 Имя: {data.get('name', '—')}\n"
+        f"📱 Телефон: {data.get('phone', '—')}\n"
+        f"📧 Email: {data.get('email', '—')}\n"
+        f"📄 Резюме: {data.get('resume_link', '—')}\n"
+        f"🎯 Приоритет 1: {data.get('priority1', '—')}\n"
+        f"🎯 Приоритет 2: {data.get('priority2', '—')}\n"
+        f"🎓 Курс: {data.get('course', '—')}\n"
+        f"🏛 ВУЗ: {data.get('university', '—')}\n"
+        f"📚 Специальность: {data.get('specialty', '—')}\n"
+        f"⏰ Занятость: {data.get('employment_hours', '—')} ч/нед\n"
+        f"🏙 Город: {data.get('city', '—')}\n"
+        f"📣 Источник: {data.get('source', '—')}\n"
+        f"📅 Год рождения: {data.get('birth_year', '—')}\n"
+        f"🌍 Гражданство: {data.get('citizenship', '—')}\n"
+        f"💻 Стек: {data.get('tech_stack', '—')}\n"
     )
     
     # Edit buttons
@@ -96,14 +76,16 @@ async def show_summary(message: types.Message, state: FSMContext) -> None:
         ],
     ])
     
-    sent = await bot.send_message(chat_id, summary, reply_markup=keyboard)
-    await state.update_data(last_bot_message_id=sent.message_id)
+    sent = await message.answer(summary, reply_markup=keyboard)
+    await track_bot_message(sent, state)
     await state.set_state(InternForm.confirm)
 
 
 @router.callback_query(F.data == "submit_form", InternForm.confirm)
 async def submit_form(callback: types.CallbackQuery, state: FSMContext) -> None:
-    """Submit form to API."""
+    """Submit form to API and clear chat history."""
+    bot: Bot = callback.bot
+    chat_id = callback.message.chat.id
     data = await state.get_data()
     user = callback.from_user
     
@@ -135,11 +117,25 @@ async def submit_form(callback: types.CallbackQuery, state: FSMContext) -> None:
     if response:
         # Save candidate_id for quiz
         candidate_id = response.get("id")
-        await state.update_data(candidate_id=candidate_id)
-        
-        data = await state.get_data()
         name = data.get("name", "друг")
         track = data.get("priority1", "твоему направлению")
+        
+        # Clear all chat history first
+        await clear_chat_history(bot, chat_id, state)
+        
+        # Delete the summary message too
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        
+        # Update state with candidate_id but keep name/track
+        await state.update_data(
+            candidate_id=candidate_id,
+            name=name,
+            priority1=track,
+            tracked_message_ids=[],  # Reset tracking
+        )
         
         # Success message with quiz button
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -149,11 +145,10 @@ async def submit_form(callback: types.CallbackQuery, state: FSMContext) -> None:
         from src import texts
         text = texts.FORM_SUBMITTED.format(name=name, track=track)
         
-        await callback.message.edit_text(text, reply_markup=keyboard)
+        await bot.send_message(chat_id, text, reply_markup=keyboard)
     else:
         from src import texts
         await callback.message.edit_text(texts.ERROR_API)
         await state.clear()
     
     await callback.answer()
-

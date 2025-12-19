@@ -12,7 +12,7 @@ from src.parser import ResumeParser
 from src.data_loader import UNIVERSITIES
 from src.handlers.summary import show_summary
 from src.keyboards import REMOVE_KEYBOARD
-from src.message_utils import reply_clean
+from src.message_utils import track_bot_message, track_user_message
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -23,21 +23,26 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
     """Handle PDF resume upload."""
     document = message.document
     
+    await track_user_message(message, state)
+    
     # Validate file type
     is_pdf = (
         document.mime_type == "application/pdf"
         or document.file_name.lower().endswith(".pdf")
     )
     if not is_pdf:
-        await reply_clean(message, state, "Пожалуйста, загрузи файл в формате PDF.")
+        sent = await message.answer("Пожалуйста, загрузи файл в формате PDF 📄")
+        await track_bot_message(sent, state)
         return
     
     # Validate file size (5 MB)
     if document.file_size > 5 * 1024 * 1024:
-        await reply_clean(message, state, "Файл слишком большой. Максимум — 5 МБ.")
+        sent = await message.answer("Файл слишком большой. Максимум — 5 МБ.")
+        await track_bot_message(sent, state)
         return
     
-    await reply_clean(message, state, "📄 Файл получен. Обрабатываю...")
+    sent = await message.answer("📄 Файл получен. Обрабатываю...")
+    await track_bot_message(sent, state)
     
     # Download to temp file
     try:
@@ -53,13 +58,13 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
         # Validate content
         if not parser.validate_content():
             os.unlink(tmp_path)
-            await reply_clean(
-                message, state,
+            sent = await message.answer(
                 "❌ Файл не похож на резюме.\n"
                 "Проверь файл или заполни анкету вручную.\n\n"
                 "Введи свою **Фамилию**:",
                 reply_markup=REMOVE_KEYBOARD,
             )
+            await track_bot_message(sent, state)
             await state.set_state(InternForm.surname)
             return
         
@@ -89,26 +94,28 @@ async def process_resume_upload(message: types.Message, state: FSMContext) -> No
             tech_stack=extracted.get("tech_stack") or "Не найдено",
         )
         
-        await reply_clean(message, state, "✅ Данные извлечены! Проверь и заполни пропуски.")
+        sent = await message.answer("✅ Данные извлечены! Проверь и заполни пропуски.")
+        await track_bot_message(sent, state)
         await show_summary(message, state)
         
     except Exception as e:
         logger.exception(f"Error parsing resume: {e}")
-        await reply_clean(
-            message, state,
+        sent = await message.answer(
             "❌ Ошибка при чтении файла. Заполним вручную.\n\n"
             "Введи свою **Фамилию**:",
             reply_markup=REMOVE_KEYBOARD,
         )
+        await track_bot_message(sent, state)
         await state.set_state(InternForm.surname)
 
 
 @router.message(InternForm.upload_resume)
 async def handle_non_document(message: types.Message, state: FSMContext) -> None:
     """Handle non-document messages in upload state."""
-    await reply_clean(
-        message, state,
-        "Пожалуйста, отправь файл PDF.\n"
+    await track_user_message(message, state)
+    sent = await message.answer(
+        "Пожалуйста, отправь файл PDF 📄\n"
         "Или напиши /start чтобы заполнить вручную."
     )
+    await track_bot_message(sent, state)
 
