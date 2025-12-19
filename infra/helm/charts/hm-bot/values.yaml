@@ -1,9 +1,19 @@
+# Global values (overridden by parent chart)
+global:
+  image:
+    registry: ghcr.io/dudin-george/cu-x5-bootcamp
+    tag: latest
+    pullPolicy: IfNotPresent
+
 replicaCount: 1
 
 config:
   environment: dev
   logLevel: INFO
   port: 8000
+  apiBaseUrl: "http://core-api:8000"
+  webhookPath: "/tg/hm"
+  webhookBaseUrl: ""  # e.g., https://dev.x5teamintern.ru
 
 secrets:
   telegramBotToken: ""
